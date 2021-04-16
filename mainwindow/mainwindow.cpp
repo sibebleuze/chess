@@ -1,13 +1,16 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+//#include <iostream>
 
 MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent),
         ui(new Ui::MainWindow) {
     ui->setupUi(this);
+    f = new Field(750, 450, this);
 }
 
 MainWindow::~MainWindow() {
+    delete f;
     delete ui;
 }
 

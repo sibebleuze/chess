@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QApplication>
 #include <QDesktopWidget>
+#include "../chessboard/field.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -17,6 +18,7 @@ public:
     ~MainWindow();
 
     void changeEvent(QEvent *event);
+    Field *f;
 
 private:
     Ui::MainWindow *ui;
