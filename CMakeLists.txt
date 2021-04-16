@@ -19,7 +19,12 @@ endif ()
 
 find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 
-add_executable(chess "main.cpp" "mainwindow/mainwindow.cpp")
+add_executable(chess
+        "main.cpp"
+        "mainwindow/mainwindow.cpp"
+        "chessboard/board.cpp"
+        "chessboard/line.cpp"
+        "chessboard/field.cpp")
 
 target_link_libraries(chess ${REQUIRED_LIBS_QUALIFIED})
 add_custom_command(TARGET chess
