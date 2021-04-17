@@ -1,7 +1,7 @@
 #include "field.h"
 
-Field::Field(QWidget *mainwidget, QString name, int left, int top, QString field_color, QString piece = "",
-             QString piece_color = "") :
+Field::Field(QWidget *mainwidget, QString name, int left, int top, QString field_color, QString piece,
+             QString piece_color) :
         QPushButton(mainwidget) {
     this->field_color = field_color;
     this->piece = piece;
@@ -20,7 +20,7 @@ Field::Field(QWidget *mainwidget, QString name, int left, int top, QString field
     this->show();
 }
 
-void Field::change_icon(QString piece = "", QString piece_color = "", bool select = false) {
+void Field::change_icon(QString piece, QString piece_color, bool select) {
     this->piece = piece;
     this->piece_color = piece_color;
     QString extension;
@@ -40,7 +40,7 @@ void Field::change_icon(QString piece = "", QString piece_color = "", bool selec
     this->show();
 }
 
-void Field::change_selection(bool do_emit = true) {
+void Field::change_selection(bool do_emit) {
     this->selected = !this->selected; // switch status
     this->change_icon(this->piece, this->piece_color, this->selected); // switch icon appropriately
     if (do_emit) { // sometimes do_emit = false, when triggered by the Board instead of a click

@@ -6,14 +6,14 @@
 
 class Field : public QPushButton {
 public:
-    Field(QWidget *mainwidget, QString name, int left, int top, QString field_color, QString piece,
-          QString piece_color);
+    Field(QWidget *mainwidget, QString name, int left, int top, QString field_color, QString piece = "",
+          QString piece_color = "");
 
-    void change_icon(QString piece, QString piece_color, bool select);
+    void change_icon(QString piece = "", QString piece_color = "", bool select = false);
 
 public slots:
 
-    void change_selection(bool do_emit);
+    void change_selection(bool do_emit = true);
 
 signals:
 
