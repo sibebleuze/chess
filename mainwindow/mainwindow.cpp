@@ -1,12 +1,12 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-//#include <iostream>
 
 MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent),
         ui(new Ui::MainWindow) {
     ui->setupUi(this);
-    f = new Field(750, 450, this);
+    f = new Field(this, "a1", 750, 450, "light", "knight", "white");
+    connect(f, &QPushButton::clicked, f, &Field::change_selection);
 }
 
 MainWindow::~MainWindow() {

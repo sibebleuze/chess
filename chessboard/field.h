@@ -4,11 +4,25 @@
 #include <QIcon>
 #include <QPushButton>
 
-class Field {
+class Field : public QPushButton {
 public:
-    Field(int left, int top, QWidget *mainwidget);
-    ~Field();
-    QPushButton *button;
+    Field(QWidget *mainwidget, QString name, int left, int top, QString field_color, QString piece,
+          QString piece_color);
+
+    void change_icon(QString piece, QString piece_color, bool select);
+
+public slots:
+
+    void change_selection(bool do_emit);
+
+signals:
+
+    void select_switch() {};
+private:
+    QString field_color;
+    QString piece;
+    QString piece_color;
+    bool selected = false;
 };
 
 
