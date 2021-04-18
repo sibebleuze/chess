@@ -109,55 +109,6 @@ Line::Line(QWidget *mainwidget, int linenumber, int x_offset, int y_offset) {
             else { return "light"; }
         }();
     }
-
-//    if (linenumber < 2 || linenumber > 6) {
-//        QString piece_color = find_piece_color(linenumber);
-//        for (int i = 0; i < 8; i++) {
-//            QString piece = find_piece(linenumber, i);
-//            Field *f;
-//            f = new Field(mainwidget, name + QString(i + 1), x_offset + 50 * i, y_offset, field_color, piece,
-//                          piece_color);
-//            this->fields.push_back(f);
-//            if (field_color == "light") {
-//                field_color = "dark";
-//            } else {
-//                field_color = "light";
-//            }
-//        }
-//    } else {
-//        for (int i = 0; i < 8; i++) {
-//            Field *f;
-//            f = new Field(mainwidget, name + QString(i + 1), x_offset + 50 * i, y_offset, field_color);
-//            this->fields.push_back(f);
-//            if (field_color == "light") {
-//                field_color = "dark";
-//            } else {
-//                field_color = "light";
-//            }
-//        }
-//    }
-
-
-//    for (int i = 0; i < 8; i++) {
-//        Field *f;
-//        if (linenumber < 2) {
-//            QString piece_color = "white";
-//            QString piece = find_piece(linenumber, i);
-//            f = new Field(mainwidget, name + QString(i + 1), x_offset + 50 * i, y_offset, field_color, piece, piece_color);
-//        } else if (linenumber > 6) {
-//            QString piece_color = "black";
-//            QString piece = find_piece(linenumber, i);
-//            f = new Field(mainwidget, name + QString(i + 1), x_offset + 50 * i, y_offset, field_color, piece, piece_color);
-//        } else {
-//            f = new Field(mainwidget, name + QString(i + 1), x_offset + 50 * i, y_offset, field_color);
-//        }
-//        this->fields.push_back(f);
-//        if (field_color == "light") {
-//            field_color = "dark";
-//        } else {
-//            field_color = "light";
-//        }
-//    }
 }
 
 Line::~Line() {
