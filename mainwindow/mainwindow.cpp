@@ -5,21 +5,25 @@ MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent),
         ui(new Ui::MainWindow) {
     ui->setupUi(this);
-    f = new Field(this, "a1", 750, 450, "light", "knight", "white");
-    connect(f, &QPushButton::clicked, f, &Field::change_selection);
+
+    a = new Line(this, 0);
+    b = new Line(this, 1);
+    c = new Line(this, 2);
+    d = new Line(this, 3);
+    e = new Line(this, 4);
+    f = new Line(this, 5);
+    g = new Line(this, 6);
+    h = new Line(this, 7);
 }
 
 MainWindow::~MainWindow() {
+    delete a;
+    delete b;
+    delete c;
+    delete d;
+    delete e;
     delete f;
+    delete g;
+    delete h;
     delete ui;
-}
-
-void MainWindow::changeEvent(QEvent *event) {
-    // this centers the window when it is no longer maximized
-    // TODO: check if this is the desired behaviour
-    if (event->type() == QEvent::WindowStateChange) {
-        if (this->windowState() == Qt::WindowNoState) {
-            this->move(QApplication::desktop()->availableGeometry().center() - this->rect().center());
-        }
-    }
 }

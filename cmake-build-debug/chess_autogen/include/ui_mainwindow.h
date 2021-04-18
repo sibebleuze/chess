@@ -25,7 +25,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(1500, 900);
+        MainWindow->resize(1000, 600);
         mainwidget = new QWidget(MainWindow);
         mainwidget->setObjectName(QString::fromUtf8("mainwidget"));
         MainWindow->setCentralWidget(mainwidget);

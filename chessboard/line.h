@@ -7,8 +7,10 @@
 
 class Line {
 public:
-    Line(QWidget *mainwidget, QString name, int y_offset, QString field_color,
-         std::vector<QString> pieces = std::vector<QString>());
+    Line(QWidget *mainwidget,
+         int linenumber,
+         int x_offset = 100, // x coordinate of left of board
+         int y_offset = 500); // y coordinate of bottom of board
 
     ~Line();
 

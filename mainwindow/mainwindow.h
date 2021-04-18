@@ -4,7 +4,8 @@
 #include <QMainWindow>
 #include <QApplication>
 #include <QDesktopWidget>
-#include "../chessboard/field.h"
+//#include "../chessboard/field.h"
+#include "../chessboard/line.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -17,8 +18,7 @@ public:
 
     ~MainWindow();
 
-    void changeEvent(QEvent *event);
-    Field *f;
+    Line *a, *b, *c, *d, *e, *f, *g, *h;
 
 private:
     Ui::MainWindow *ui;
