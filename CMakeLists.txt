@@ -24,7 +24,9 @@ add_executable(chess
         "mainwindow/mainwindow.cpp"
         "chessboard/board.cpp"
         "chessboard/line.cpp"
-        "chessboard/field.cpp")
+        "chessboard/field.cpp"
+        "nvwa-1.1/nvwa/debug_new.cpp") # catch some memory leaks
+# TODO: remove nvwa from final project
 
 target_link_libraries(chess ${REQUIRED_LIBS_QUALIFIED})
 add_custom_command(TARGET chess
