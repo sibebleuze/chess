@@ -7,7 +7,7 @@
 class Field : public QPushButton {
 public:
     Field(QWidget *mainwidget,
-          QString name, // name of the field, e.g. 'a1'
+          int linenumber, int position, // position of the field on the board
           int left, int top, // x and y coordinate of top left corner of field/button
           QString field_color, // color of the field: 'light' or 'dark'
           QString piece = "", // which piece, if any, is on the field
@@ -27,6 +27,16 @@ private:
     QString piece;
     QString piece_color;
     bool selected = false;
+    // below are some maps that are constant but needed to be initialized somewhere;
+    // since they will only be used in the Field constructor, this seemed like a good place
+    std::map<int, QString> row_names = {{0, "a"},
+                                        {1, "b"},
+                                        {2, "c"},
+                                        {3, "d"},
+                                        {4, "e"},
+                                        {5, "f"},
+                                        {6, "g"},
+                                        {7, "h"}}; // map of linenumbers to row names
 };
 
 

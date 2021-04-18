@@ -1,13 +1,12 @@
 #include "line.h"
 
 Line::Line(QWidget *mainwidget, int linenumber, int x_offset, int y_offset) {
-    QString name = this->row_names[linenumber];
     QString field_color = this->left_field_colors[linenumber];
     QString piece_color = this->piece_colors[linenumber];
     for (int i = 0; i < 8; i++) {
         QString piece = pieces[linenumber][i];
         Field *f;
-        f = new Field(mainwidget, name + QString(i + 1), x_offset + 50 * i, y_offset - 50 * linenumber, field_color,
+        f = new Field(mainwidget, linenumber, i, x_offset + 50 * i, y_offset - 50 * linenumber, field_color,
                       piece, piece_color);
         QObject::connect(f, &QPushButton::clicked, f, &Field::change_selection);
         this->fields.push_back(f);

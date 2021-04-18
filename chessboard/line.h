@@ -21,14 +21,6 @@ private:
     std::vector<Field *> fields; // will be vector of 8 Fields
     // below are some maps that are constant but needed to be initialized somewhere;
     // since they will only be used in the Line constructor, this seemed like a good place
-    std::map<int, QString> row_names = {{0, "a"},
-                                        {1, "b"},
-                                        {2, "c"},
-                                        {3, "d"},
-                                        {4, "e"},
-                                        {5, "f"},
-                                        {6, "g"},
-                                        {7, "h"}}; // map of linenumbers to row names
     std::map<int, QString> left_field_colors{{0, "dark"},
                                              {1, "light"},
                                              {2, "dark"},

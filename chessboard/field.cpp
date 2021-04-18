@@ -1,12 +1,12 @@
 #include "field.h"
 
-Field::Field(QWidget *mainwidget, QString name, int left, int top, QString field_color, QString piece,
+Field::Field(QWidget *mainwidget, int linenumber, int position, int left, int top, QString field_color, QString piece,
              QString piece_color) :
         QPushButton(mainwidget) {
     this->field_color = field_color;
     this->piece = piece;
     this->piece_color = piece_color;
-    this->setObjectName(name);
+    this->setObjectName(this->row_names[linenumber] + QString(position + 1));
     this->setGeometry(QRect(left, top, 50, 50));
     QString filename;
     if (this->piece != "") {
