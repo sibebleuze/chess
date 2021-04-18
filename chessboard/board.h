@@ -2,8 +2,16 @@
 #define CHESS_BOARD_H
 
 
-class Board {
+#include "line.h"
 
+class Board {
+public:
+    Board(QWidget *mainwidget);
+
+    ~Board();
+//    Field *operator[](QString name);
+private:
+    std::vector<Line *> lines; // will be vector of 8 Lines
 };
 
 
