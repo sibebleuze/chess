@@ -16,9 +16,9 @@ Board::~Board() {
     }
 }
 
-//Field *Board::operator[](QString name) { // overload bracket operator, chess notation has fields a1 -> h8
-//     if e.g. name = 'a1',
-//    QString row = name.left(1); // then row = 'a'
-//    int column = name.right(1).toInt(); // and column = 1
-//    return nullptr;
-//}
+Field *Board::operator[](QString name) { // overload bracket operator, chess notation has fields a1 -> h8
+    // if e.g. name = 'a1',
+    int row = this->row_numbers[name.left(1)]; // then row = 0
+    int column = name.right(1).toInt(); // and column = 1
+    return (*this->lines[row])[column];
+}
