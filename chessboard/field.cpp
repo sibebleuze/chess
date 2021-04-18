@@ -1,13 +1,13 @@
 #include "field.h"
 
-Field::Field(QWidget *mainwidget, int linenumber, int position, int left, int top, QString field_color, QString piece,
-             QString piece_color) :
+Field::Field(QWidget *mainwidget, int linenumber, int position, int x_offset, int y_offset) :
         QPushButton(mainwidget) {
-    this->field_color = field_color;
-    this->piece = piece;
-    this->piece_color = piece_color;
-    this->setObjectName(this->row_names[linenumber] + QString(position + 1));
-    this->setGeometry(QRect(left, top, 50, 50));
+    this->field_color = this->field_colors[linenumber][position];
+    this->piece = this->pieces[linenumber][position];
+    this->piece_color = this->piece_colors[linenumber];
+    this->setObjectName(
+            this->row_names[linenumber] + QString(position + 1)); // e.g. 'a1' when linenumber = 0 and position = 0
+    this->setGeometry(QRect(x_offset + 50 * position, y_offset - 50 * linenumber, 50, 50));
     QString filename;
     if (this->piece != "") {
         filename = "../icons/" + this->piece_color + "_" + this->piece + "_" + this->field_color + ".svg";
@@ -17,6 +17,7 @@ Field::Field(QWidget *mainwidget, int linenumber, int position, int left, int to
     this->setIcon(QIcon(filename));
     this->setIconSize(this->size());
     this->setFixedSize(this->size());
+    QObject::connect(this, &QPushButton::clicked, this, &Field::change_selection);
     this->show();
 }
 
