@@ -4,7 +4,6 @@
 
 #include "field.h"
 #include <vector>
-#include <map>
 
 class Line {
 public:

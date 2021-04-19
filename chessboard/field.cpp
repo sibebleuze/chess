@@ -46,6 +46,7 @@ Field::Field(QWidget *mainwidget, int linenumber, int position, int x_offset, in
     this->field_color = field::field_colors[linenumber][position];
     this->piece = field::pieces[linenumber][position];
     this->piece_color = field::piece_colors[linenumber];
+    this->position = std::make_pair(linenumber, position);
     this->setObjectName(
             field::row_names[linenumber] + QString(position + 1)); // e.g. 'a1' when linenumber = 0 and position = 0
     this->setGeometry(QRect(x_offset + 50 * position, y_offset - 50 * linenumber, 50, 50));
@@ -61,7 +62,7 @@ Field::Field(QWidget *mainwidget, int linenumber, int position, int x_offset, in
     this->show();
 }
 
-void Field::change_icon(QString piece, QString piece_color, bool select) {
+void Field::changeIcon(QString piece, QString piece_color, bool select) {
     this->piece = piece;
     this->piece_color = piece_color;
     QString extension;
@@ -81,7 +82,23 @@ void Field::change_icon(QString piece, QString piece_color, bool select) {
     this->show();
 }
 
-void Field::change_selection() {
+void Field::changeSelection() {
     this->selected = !this->selected; // switch status
-    this->change_icon(this->piece, this->piece_color, this->selected); // switch icon appropriately
+    this->changeIcon(this->piece, this->piece_color, this->selected); // switch icon appropriately
+}
+
+QString Field::getPiece() {
+    return this->piece;
+}
+
+QString Field::getPieceColor() {
+    return this->piece_color;
+}
+
+bool Field::isSelected() {
+    return this->selected;
+}
+
+std::pair<int, int> Field::getPosition() {
+    return this->position;
 }

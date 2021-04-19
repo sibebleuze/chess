@@ -15,9 +15,6 @@ Line::~Line() {
     }
 }
 
-Field *Line::operator[](int i) { // overload bracket operator, chess notation has fields a1 -> h8
-    // this could be done in the overloaded Board[] operator,
-    // but this one needs to be overloaded anyway to connect to the fields vector,
-    // so it might as well be done here
-    return this->fields[i - 1];
+Field *Line::operator[](int i) {
+    return this->fields[i];
 }
