@@ -12,9 +12,7 @@ public:
 
     void change_icon(QString piece = "", QString piece_color = "", bool select = false);
 
-public slots:
-
-    void change_selection(bool do_emit = true);
+    void change_selection();
 
 signals:
 

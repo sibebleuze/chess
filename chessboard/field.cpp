@@ -17,7 +17,7 @@ Field::Field(QWidget *mainwidget, int linenumber, int position, int x_offset, in
     this->setIcon(QIcon(filename));
     this->setIconSize(this->size());
     this->setFixedSize(this->size());
-    QObject::connect(this, &QPushButton::clicked, this, &Field::change_selection);
+//    QObject::connect(this, &QPushButton::clicked, this, &Field::change_selection);
     this->show();
 }
 
@@ -41,10 +41,7 @@ void Field::change_icon(QString piece, QString piece_color, bool select) {
     this->show();
 }
 
-void Field::change_selection(bool do_emit) {
+void Field::change_selection() {
     this->selected = !this->selected; // switch status
     this->change_icon(this->piece, this->piece_color, this->selected); // switch icon appropriately
-    if (do_emit) { // sometimes do_emit = false, when triggered by the Board instead of a click
-        emit this->select_switch();
-    }
 }

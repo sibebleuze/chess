@@ -4,13 +4,17 @@
 
 #include "line.h"
 
-class Board {
+class Board : public QObject {
 public:
     Board(QWidget *mainwidget);
 
     ~Board();
 
     Field *operator[](QString name);
+
+public slots:
+
+    void field_clicked();
 
 private:
     std::vector<Line *> lines; // will be vector of 8 Lines

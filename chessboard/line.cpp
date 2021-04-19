@@ -4,7 +4,6 @@ Line::Line(QWidget *mainwidget, int linenumber, int x_offset, int y_offset) {
     for (int i = 0; i < 8; i++) {
         Field *f;
         f = new Field(mainwidget, linenumber, i, x_offset, y_offset);
-//        QObject::connect(f, &QPushButton::clicked, f, &Field::change_selection);
         this->fields.push_back(f);
     }
 }
