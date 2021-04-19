@@ -26,6 +26,7 @@ Field *Board::operator[](QString name) { // overload bracket operator, chess not
 }
 
 void Board::field_clicked() {
+    // the sender will always be a Field, and since we need to apply Field methods to it, it needs to be cast to a Field here
     Field *emitting = (Field *) (QObject::sender());
     emitting->change_selection();
 }
