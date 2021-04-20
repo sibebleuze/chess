@@ -18,57 +18,6 @@ Board::~Board() {
     }
 }
 
-namespace board {
-    std::vector<Field *> getRookMoves(std::pair<int, int> position, Board *b) {
-        std::vector<Field *> possible_moves;
-        Field *f = (*b)[position];
-        possible_moves.push_back(f);
-        return possible_moves;
-    }
-
-    std::vector<Field *> getKnightMoves(std::pair<int, int> position, Board *b) {
-        std::vector<Field *> possible_moves;
-        Field *f = (*b)[position];
-        possible_moves.push_back(f);
-        return possible_moves;
-    }
-
-    std::vector<Field *> getBishopMoves(std::pair<int, int> position, Board *b) {
-        std::vector<Field *> possible_moves;
-        Field *f = (*b)[position];
-        possible_moves.push_back(f);
-        return possible_moves;
-    }
-
-    std::vector<Field *> getQueenMoves(std::pair<int, int> position, Board *b) {
-        std::vector<Field *> possible_moves;
-        Field *f = (*b)[position];
-        possible_moves.push_back(f);
-        return possible_moves;
-    }
-
-    std::vector<Field *> getKingMoves(std::pair<int, int> position, Board *b) {
-        std::vector<Field *> possible_moves;
-        Field *f = (*b)[position];
-        possible_moves.push_back(f);
-        return possible_moves;
-    }
-
-    std::vector<Field *> getPawnMoves(std::pair<int, int> position, Board *b) {
-        std::vector<Field *> possible_moves;
-        Field *f = (*b)[position];
-        possible_moves.push_back(f);
-        return possible_moves;
-    }
-
-    std::vector<Field *> getEmptyMoves(std::pair<int, int> position, Board *b) {
-        std::vector<Field *> possible_moves;
-        Field *f = (*b)[position];
-        possible_moves.push_back(f);
-        return possible_moves;
-    }
-}
-
 std::map<QString, int> Board::row_numbers() {
     return {{"a", 0},
             {"b", 1},
@@ -78,18 +27,6 @@ std::map<QString, int> Board::row_numbers() {
             {"f", 5},
             {"g", 6},
             {"h", 7}}; // map of row names to line numbers
-}
-
-std::map<QString, std::vector<Field *>(*)(std::pair<int, int>, Board *)> Board::pieces() {
-    return {
-            {"rook",   board::getRookMoves},
-            {"knight", board::getKnightMoves},
-            {"bishop", board::getBishopMoves},
-            {"queen",  board::getQueenMoves},
-            {"king",   board::getKingMoves},
-            {"pawn",   board::getPawnMoves},
-            {"",       board::getEmptyMoves}
-    }; // map of piece names to move calculator functions
 }
 
 Field *Board::operator[](QString name) { // overload bracket operator, chess notation has fields a1 -> h8
@@ -113,7 +50,110 @@ void Board::field_clicked() {
 //    emitting->changeSelection();
 }
 
+bool Board::on_board(std::pair<int, int> position, std::pair<int, int> increment) {
+    return 0 <= position.first + increment.first && position.first + increment.first < 8 &&
+           0 <= position.second + increment.second && position.second + increment.second < 8;
+} // checks if a move increment from a certain position is still on the board or not
+
+std::vector<Field *> Board::getRookMoves(std::pair<int, int> position) {
+    std::vector<Field *> possible_moves;
+    Field *f = (*this)[position];
+    possible_moves.push_back(f);
+    return possible_moves;
+}
+
+std::vector<Field *> Board::getKnightMoves(std::pair<int, int> position) {
+    std::vector<Field *> possible_moves;
+    Field *invoking = (*this)[position];
+    possible_moves.push_back(invoking);
+    std::vector<std::pair<int, int>> knight_moves = {{1,  2},
+                                                     {2,  1},
+                                                     {-1, 2},
+                                                     {-2, 1},
+                                                     {1,  -2},
+                                                     {2,  -1},
+                                                     {-1, -2},
+                                                     {-2, -1}}; // all moves a knight could make
+    for (auto i : knight_moves) {
+        if (this->on_board(position, i)) {
+            Field *f = (*this)[std::make_pair(position.first + i.first, position.second + i.second)];
+            if (f->getPieceColor() != invoking->getPieceColor()) { // can't 'capture' own pieces
+                possible_moves.push_back(f);
+            }
+        }
+    }
+    return possible_moves;
+}
+
+std::vector<Field *> Board::getBishopMoves(std::pair<int, int> position) {
+    std::vector<Field *> possible_moves;
+    Field *f = (*this)[position];
+    possible_moves.push_back(f);
+    return possible_moves;
+}
+
+std::vector<Field *> Board::getQueenMoves(std::pair<int, int> position) {
+    std::vector<Field *> possible_moves;
+    Field *f = (*this)[position];
+    possible_moves.push_back(f);
+    return possible_moves;
+}
+
+std::vector<Field *> Board::getKingMoves(std::pair<int, int> position) {
+    std::vector<Field *> possible_moves;
+    Field *invoking = (*this)[position];
+    possible_moves.push_back(invoking);
+    std::vector<std::pair<int, int>> king_moves = {{1,  1},
+                                                   {1,  0},
+                                                   {1,  -1},
+                                                   {0,  1},
+                                                   {0,  -1},
+                                                   {-1, 1},
+                                                   {-1, 0},
+                                                   {-1, -1}}; // all moves a king could make (except castling)
+    for (auto i : king_moves) {
+        if (this->on_board(position, i)) {
+            Field *f = (*this)[std::make_pair(position.first + i.first, position.second + i.second)];
+            if (f->getPieceColor() != invoking->getPieceColor()) { // can't 'capture' own pieces
+                possible_moves.push_back(f);
+            }
+        }
+    }
+    // castling
+
+    return possible_moves;
+}
+
+std::vector<Field *> Board::getPawnMoves(std::pair<int, int> position) {
+    std::vector<Field *> possible_moves;
+    Field *f = (*this)[position];
+    possible_moves.push_back(f);
+    return possible_moves;
+}
+
+std::vector<Field *> Board::getEmptyMoves(std::pair<int, int> position) {
+    std::vector<Field *> possible_moves;
+//    Field *f = (*this)[position];
+//    possible_moves.push_back(f);
+    return possible_moves;
+}
+
 std::vector<Field *> Board::get_field_moves(std::pair<int, int> position) {
     Field *f = (*this)[position];
-    return Board::pieces()[f->getPiece()](position, this);
+    QString p = f->getPiece();
+    if (p == "rook") {
+        return this->getRookMoves(position);
+    } else if (p == "knight") {
+        return this->getKnightMoves(position);
+    } else if (p == "bishop") {
+        return this->getBishopMoves(position);
+    } else if (p == "queen") {
+        return this->getQueenMoves(position);
+    } else if (p == "king") {
+        return this->getKingMoves(position);
+    } else if (p == "pawn") {
+        return this->getPawnMoves(position);
+    } else {
+        return this->getEmptyMoves(position);
+    } // ideally this would be a switch case, but that appears to not work with strings
 }

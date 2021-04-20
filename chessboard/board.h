@@ -25,7 +25,21 @@ private:
 
     static std::map<QString, int> row_numbers();
 
-    static std::map<QString, std::vector<Field *>(*)(std::pair<int, int>, Board *)> pieces();
+    bool on_board(std::pair<int, int> position, std::pair<int, int> increment);
+
+    std::vector<Field *> getRookMoves(std::pair<int, int> position);
+
+    std::vector<Field *> getKnightMoves(std::pair<int, int> position);
+
+    std::vector<Field *> getBishopMoves(std::pair<int, int> position);
+
+    std::vector<Field *> getQueenMoves(std::pair<int, int> position);
+
+    std::vector<Field *> getKingMoves(std::pair<int, int> position);
+
+    std::vector<Field *> getPawnMoves(std::pair<int, int> position);
+
+    std::vector<Field *> getEmptyMoves(std::pair<int, int> position);
 };
 
 
