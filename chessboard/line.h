@@ -2,8 +2,8 @@
 #define CHESS_LINE_H
 
 
-#include "field.h"
 #include <vector>
+#include "field.h"
 
 class Line {
 public:
