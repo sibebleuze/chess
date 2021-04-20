@@ -133,8 +133,6 @@ std::vector<Field *> Board::getPawnMoves(std::pair<int, int> position) {
 
 std::vector<Field *> Board::getEmptyMoves(std::pair<int, int> position) {
     std::vector<Field *> possible_moves;
-//    Field *f = (*this)[position];
-//    possible_moves.push_back(f);
     return possible_moves;
 }
 
