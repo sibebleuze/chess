@@ -126,8 +126,47 @@ std::vector<Field *> Board::getKingMoves(std::pair<int, int> position) {
 
 std::vector<Field *> Board::getPawnMoves(std::pair<int, int> position) {
     std::vector<Field *> possible_moves;
-    Field *f = (*this)[position];
-    possible_moves.push_back(f);
+    Field *invoking = (*this)[position];
+    possible_moves.push_back(invoking);
+    std::pair<int, int> one_forward;
+    std::pair<int, int> two_forward;
+    std::vector<std::pair<int, int>> pawn_capture;
+    int start_row;
+    if (invoking->getPieceColor() == "white") {
+        one_forward = {1, 0};
+        start_row = 1;
+        two_forward = {2, 0};
+        pawn_capture = {{1, 1},
+                        {1, -1}};
+    } else {
+        one_forward = {-1, 0};
+        start_row = 6;
+        two_forward = {-2, 0};
+        pawn_capture = {{-1, 1},
+                        {-1, -1}};
+    }
+    if (this->on_board(position, one_forward)) {
+        Field *f = (*this)[std::make_pair(position.first + one_forward.first, position.second)];
+        if (f->getPiece() == "") {
+            possible_moves.push_back(f);
+            if (position.first == start_row) { // pawn can move forward 2 fields from starting position
+                Field *f = (*this)[std::make_pair(position.first + two_forward.first, position.second)];
+                if (f->getPiece() == "") {
+                    possible_moves.push_back(f);
+                }
+            }
+        }
+    }
+    for (auto i : pawn_capture) {
+        if (this->on_board(position, i)) {
+            Field *f = (*this)[std::make_pair(position.first + i.first, position.second + i.second)];
+            if (f->getPieceColor() != invoking->getPieceColor() && f->getPieceColor() != "") {
+                possible_moves.push_back(f);
+            }
+        }
+    }
+    // en passant
+
     return possible_moves;
 }
 
