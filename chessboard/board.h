@@ -22,6 +22,10 @@ public slots:
 private:
     std::vector<Line *> lines; // will be vector of 8 Lines
     std::vector<Field *> get_field_moves(std::pair<int, int> position);
+
+    static std::map<QString, int> row_numbers();
+
+    static std::map<QString, std::vector<Field *>(*)(std::pair<int, int>, Board *)> pieces();
 };
 
 

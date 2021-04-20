@@ -30,6 +30,14 @@ private:
     QString piece_color;
     std::pair<int, int> position;
     bool selected = false;
+
+    static std::map<int, QString> row_names();
+
+    static std::map<int, std::vector<QString>> field_colors();
+
+    static std::map<int, QString> piece_colors();
+
+    static std::map<int, std::vector<QString>> pieces();
 };
 
 
