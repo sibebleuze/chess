@@ -20,6 +20,8 @@ public slots:
     void field_clicked();
 
 private:
+    Field *last_clicked;
+    bool selected = false;
     std::vector<Line *> lines; // will be vector of 8 Lines
     std::vector<Field *> get_field_moves(Field *invoking);
 

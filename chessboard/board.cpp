@@ -43,9 +43,28 @@ Field *Board::operator[](std::pair<int, int> position) {
 void Board::field_clicked() {
     // the sender will always be a Field, and since we need to apply Field methods to it, it needs to be cast to a Field here
     Field *emitting = (Field *) (QObject::sender());
-    std::vector<Field *> possible_moves = this->get_field_moves(emitting);
-    for (auto i : possible_moves) {
-        i->changeSelection();
+    if (this->selected) {
+        this->selected = false;
+        std::vector<Field *> to_deselect = this->get_field_moves(this->last_clicked);
+        if (emitting->isSelected()) {
+            // move the piece here
+            emitting->changeIcon(this->last_clicked->getPiece(), this->last_clicked->getPieceColor(),
+                                 emitting->isSelected());
+            this->last_clicked->changeIcon("", "", this->last_clicked->isSelected());
+            // selection status stays the same here, they all get deselected below
+            // TODO: fix pawns promoting
+        }
+        for (auto i : to_deselect) { // deselect everything
+            i->changeSelection();
+        }
+    } else {
+        std::vector<Field *> possible_moves = this->get_field_moves(emitting);
+        for (auto i : possible_moves) {
+            i->changeSelection();
+            // the two statements below could be outside this loop, but they would need an extra if statement to check that possible_moves is not empty
+            this->selected = true;
+            this->last_clicked = emitting;
+        }
     }
 }
 
@@ -112,8 +131,7 @@ std::vector<Field *> Board::getKingMoves(Field *invoking, std::pair<int, int> po
             }
         }
     }
-    // castling
-
+    // TODO: castling
     return possible_moves;
 }
 
@@ -156,8 +174,7 @@ std::vector<Field *> Board::getPawnMoves(Field *invoking, std::pair<int, int> po
             }
         }
     }
-    // en passant
-
+    // TODO: en passant
     return possible_moves;
 }
 
@@ -191,8 +208,8 @@ std::vector<Field *> Board::get_field_moves(Field *invoking) {
     } else if (p == "pawn") {
         possible_moves = this->getPawnMoves(invoking, position);
     } // ideally this would be a switch case, but that appears to not work with strings
-    if (p != "") {
-        possible_moves.push_back(invoking);
-    }
+//    if (p != "") {
+//        possible_moves.push_back(invoking);
+//    }
     return possible_moves;
 }
