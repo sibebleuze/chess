@@ -52,18 +52,22 @@ void Board::field_clicked() {
                                  emitting->isSelected());
             this->last_clicked->changeIcon("", "", this->last_clicked->isSelected());
             // selection status stays the same here, they all get deselected below
-            // TODO: fix pawns promoting
+            // TODO: pawns promoting, en passant and castling
         }
         for (auto i : to_deselect) { // deselect everything
             i->changeSelection();
         }
     } else {
-        std::vector<Field *> possible_moves = this->get_field_moves(emitting);
-        for (auto i : possible_moves) {
-            i->changeSelection();
-            // the two statements below could be outside this loop, but they would need an extra if statement to check that possible_moves is not empty
-            this->selected = true;
-            this->last_clicked = emitting;
+        if (emitting->getPieceColor() == this->turn) {
+            std::vector<Field *> possible_moves = this->get_field_moves(emitting);
+            for (auto i : possible_moves) {
+                i->changeSelection();
+            }
+            if (!possible_moves.empty()) {
+                this->selected = true;
+                this->last_clicked = emitting;
+                this->switch_turn();
+            }
         }
     }
 }
@@ -208,8 +212,13 @@ std::vector<Field *> Board::get_field_moves(Field *invoking) {
     } else if (p == "pawn") {
         possible_moves = this->getPawnMoves(invoking, position);
     } // ideally this would be a switch case, but that appears to not work with strings
-//    if (p != "") {
-//        possible_moves.push_back(invoking);
-//    }
     return possible_moves;
+}
+
+void Board::switch_turn() {
+    if (this->turn == "white") {
+        this->turn = "black";
+    } else {
+        this->turn = "white";
+    }
 }

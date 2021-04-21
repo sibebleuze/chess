@@ -22,12 +22,15 @@ public slots:
 private:
     Field *last_clicked;
     bool selected = false;
+    QString turn = "white";
     std::vector<Line *> lines; // will be vector of 8 Lines
     std::vector<Field *> get_field_moves(Field *invoking);
 
     static std::map<QString, int> row_numbers();
 
     bool on_board(std::pair<int, int> position, std::pair<int, int> increment);
+
+    void switch_turn();
 
     std::vector<Field *> getKnightMoves(Field *invoking, std::pair<int, int> position);
 
