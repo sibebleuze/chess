@@ -26,11 +26,13 @@ std::map<int, std::vector<QString>> Field::field_colors() {
 
 std::map<int, QString> Field::piece_colors() {
     return {{0, "white"},
+//            {1, ""},
             {1, "white"},
             {2, ""},
             {3, ""},
             {4, ""},
             {5, ""},
+//            {6, ""},
             {6, "black"},
             {7, "black"}}; // map of the color of the pieces in the row
 }
@@ -38,11 +40,13 @@ std::map<int, QString> Field::piece_colors() {
 std::map<int, std::vector<QString>> Field::pieces() {
     return {
             {0, {"rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook"}},
+//            {1, {"",     "",       "",       "",      "",     "",       "",       ""}},
             {1, {"pawn", "pawn",   "pawn",   "pawn",  "pawn", "pawn",   "pawn",   "pawn"}},
             {2, {"",     "",       "",       "",      "",     "",       "",       ""}},
             {3, {"",     "",       "",       "",      "",     "",       "",       ""}},
             {4, {"",     "",       "",       "",      "",     "",       "",       ""}},
             {5, {"",     "",       "",       "",      "",     "",       "",       ""}},
+//            {6, {"",     "",       "",       "",      "",     "",       "",       ""}},
             {6, {"pawn", "pawn",   "pawn",   "pawn",  "pawn", "pawn",   "pawn",   "pawn"}},
             {7, {"rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook"}}
     }; // map of linenumber and position in line to piece on field

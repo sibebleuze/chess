@@ -21,25 +21,20 @@ public slots:
 
 private:
     std::vector<Line *> lines; // will be vector of 8 Lines
-    std::vector<Field *> get_field_moves(std::pair<int, int> position);
+    std::vector<Field *> get_field_moves(Field *invoking);
 
     static std::map<QString, int> row_numbers();
 
     bool on_board(std::pair<int, int> position, std::pair<int, int> increment);
 
-    std::vector<Field *> getRookMoves(std::pair<int, int> position);
+    std::vector<Field *> getKnightMoves(Field *invoking, std::pair<int, int> position);
 
-    std::vector<Field *> getKnightMoves(std::pair<int, int> position);
+    std::vector<Field *>
+    getStraightMoves(Field *invoking, std::pair<int, int> position, std::vector<std::pair<int, int>> directions);
 
-    std::vector<Field *> getBishopMoves(std::pair<int, int> position);
+    std::vector<Field *> getKingMoves(Field *invoking, std::pair<int, int> position);
 
-    std::vector<Field *> getQueenMoves(std::pair<int, int> position);
-
-    std::vector<Field *> getKingMoves(std::pair<int, int> position);
-
-    std::vector<Field *> getPawnMoves(std::pair<int, int> position);
-
-    std::vector<Field *> getEmptyMoves(std::pair<int, int> position);
+    std::vector<Field *> getPawnMoves(Field *invoking, std::pair<int, int> position);
 };
 
 
