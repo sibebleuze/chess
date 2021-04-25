@@ -23,6 +23,8 @@ private:
     Field *last_clicked;
     bool selected = false;
     QString turn = "white";
+    Field *en_passant_vulnerable;
+    bool en_passant_possible = false;
     std::vector<Line *> lines; // will be vector of 8 Lines
     std::vector<Field *> get_field_moves(Field *invoking);
 

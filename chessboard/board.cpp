@@ -1,4 +1,5 @@
 #include "board.h"
+#include <iostream>
 
 Board::Board(QWidget *mainwidget) {
     for (int i = 0; i < 8; i++) {
@@ -53,9 +54,30 @@ void Board::field_clicked() {
             this->last_clicked->changeIcon("", "", this->last_clicked->isSelected());
             // selection status stays the same here, they all get deselected below
             // TODO: pawns promoting, en passant and castling
+            // at this point the piece has moved, so actions where this->last_clicked was used before are now performed on emitting
+            if (emitting->getPiece() == "pawn") { // take the en passant captured pawn off the board
+                std::map<QString, int> opponent_pawn = {{"black", 1},
+                                                        {"white", -1}};
+                std::pair<int, int> p1 = emitting->getPosition();
+                if (this->en_passant_vulnerable ==
+                    (*this)[std::make_pair(p1.first + opponent_pawn[emitting->getPieceColor()], p1.second)]) {
+                    this->en_passant_vulnerable->changeIcon("", "", this->en_passant_vulnerable->isSelected());
+                } else {
+                    std::pair<int, int> p2 = this->last_clicked->getPosition();
+                    if ((p1.first == 3 && p2.first == 1) ||
+                        (p1.first == 4 && p2.first == 6)) { // if pawn moved two fields forward
+                        this->en_passant_possible = true;
+                        this->en_passant_vulnerable = emitting;
+                    }
+                }
+            }
+            this->switch_turn();
         }
         for (auto i : to_deselect) { // deselect everything
             i->changeSelection();
+        }
+        if (this->en_passant_possible && this->en_passant_vulnerable->getPieceColor() == this->turn) {
+            this->en_passant_possible = false; // this can only be true for the duration of one turn, so after this move it is set to false
         }
     } else {
         if (emitting->getPieceColor() == this->turn) {
@@ -66,7 +88,6 @@ void Board::field_clicked() {
             if (!possible_moves.empty()) {
                 this->selected = true;
                 this->last_clicked = emitting;
-                this->switch_turn();
             }
         }
     }
@@ -145,18 +166,21 @@ std::vector<Field *> Board::getPawnMoves(Field *invoking, std::pair<int, int> po
     std::pair<int, int> two_forward;
     std::vector<std::pair<int, int>> pawn_capture;
     int start_row;
+    std::pair<int, int> en_passant;
     if (invoking->getPieceColor() == "white") {
         one_forward = {1, 0};
         start_row = 1;
         two_forward = {2, 0};
         pawn_capture = {{1, 1},
                         {1, -1}};
+        en_passant = {-1, 0};
     } else {
         one_forward = {-1, 0};
         start_row = 6;
         two_forward = {-2, 0};
         pawn_capture = {{-1, 1},
                         {-1, -1}};
+        en_passant = {1, 0};
     }
     if (this->on_board(position, one_forward)) {
         Field *f = (*this)[std::make_pair(position.first + one_forward.first, position.second)];
@@ -175,6 +199,12 @@ std::vector<Field *> Board::getPawnMoves(Field *invoking, std::pair<int, int> po
             Field *f = (*this)[std::make_pair(position.first + i.first, position.second + i.second)];
             if (f->getPieceColor() != invoking->getPieceColor() && f->getPieceColor() != "") {
                 possible_moves.push_back(f);
+            } else if (this->en_passant_possible) { // else if, because this can only lead to a correct move if the previous one wasn't true
+                Field *g = (*this)[std::make_pair(position.first + i.first + en_passant.first,
+                                                  position.second + i.second + en_passant.second)];
+                if (g == this->en_passant_vulnerable) {
+                    possible_moves.push_back(f);
+                }
             }
         }
     }
