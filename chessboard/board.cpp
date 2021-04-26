@@ -76,7 +76,8 @@ void Board::field_clicked() {
         for (auto i : to_deselect) { // deselect everything
             i->changeSelection();
         }
-        if (this->en_passant_possible && this->en_passant_vulnerable->getPieceColor() == this->turn) {
+        if (this->en_passant_possible && this->en_passant_vulnerable->getPieceColor() ==
+                                         this->turn) { // only the second check is really necessary, but the first makes sure that this->en_passant_vulnerable exists
             this->en_passant_possible = false; // this can only be true for the duration of one turn, so after this move it is set to false
         }
     } else {
@@ -251,4 +252,22 @@ void Board::switch_turn() {
     } else {
         this->turn = "white";
     }
+}
+
+bool Board::under_attack(Field *attacked, QString color) {
+    if (color ==
+        "") { // color is used when checking if castling is possible, because empty fields don't have a piece color
+        color = attacked->getPieceColor(); // on non-empty fields, the color of the piece is used
+    }
+    std::vector<Field *> enemy_moves;
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            Field *f = (*this)[std::make_pair(i, j)];
+            if (f->getPieceColor() != color and f->getPieceColor() != "") {
+                std::vector<Field *> to_add = this->get_field_moves(f);
+                enemy_moves.insert(enemy_moves.end(), to_add.begin(), to_add.end());
+            }
+        }
+    }
+    return std::find(enemy_moves.begin(), enemy_moves.end(), attacked) != enemy_moves.end();
 }

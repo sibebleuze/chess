@@ -42,6 +42,8 @@ private:
     std::vector<Field *> getKingMoves(Field *invoking, std::pair<int, int> position);
 
     std::vector<Field *> getPawnMoves(Field *invoking, std::pair<int, int> position);
+
+    bool under_attack(Field *attacked, QString color = "");
 };
 
 
