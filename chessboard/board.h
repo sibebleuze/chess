@@ -25,30 +25,39 @@ public slots:
 
 private:
     QWidget *parent;
-    QLabel *result = nullptr; // needs to be initialised, because it will be deleted in the Board destructor
-    std::pair<int, int> bottomleft;
-    Field *last_clicked = nullptr;
-    std::vector<Field *> selected;
     QString turn = "white";
-    Field *en_passant_vulnerable = nullptr;
+
+    std::pair<int, int> bottomleft;
+    QLabel *result = nullptr; // needs to be initialised, because it will be deleted in the Board destructor
+
     bool en_passant_possible = false;
+    // these don't need to be explicitly deleted in the Board destructor, they are one of the fields on the board so they are deleted through the Line destructor
+    Field *en_passant_vulnerable = nullptr;
+    Field *last_clicked = nullptr;
+
+    // initial values below are the starting positions of both kings
     std::pair<int, int> white_king_position = std::make_pair(0, 4);
     std::pair<int, int> black_king_position = std::make_pair(7, 4);
     std::vector<Line *> lines; // will be vector of 8 Lines
-    std::vector<Field *> get_field_moves(Field *invoking);
 
     static std::map<QString, int> row_numbers();
 
     static bool on_board(std::pair<int, int> position, std::pair<int, int> increment);
 
+    std::vector<Field *> selected;
+
+
+    std::vector<Field *> get_field_moves(Field *invoking);
+
     std::vector<Field *> getKnightMoves(Field *invoking, std::pair<int, int> position);
 
     std::vector<Field *>
-    getStraightMoves(Field *invoking, std::pair<int, int> position, std::vector<std::pair<int, int>> directions);
+    getStraightMoves(Field *invoking, std::pair<int, int> position, const std::vector<std::pair<int, int>> &directions);
 
     std::vector<Field *> getKingMoves(Field *invoking, std::pair<int, int> position);
 
     std::vector<Field *> getPawnMoves(Field *invoking, std::pair<int, int> position);
+
 
     bool under_attack(std::pair<int, int> position, QString &color, std::vector<Field *> move = std::vector<Field *>());
 

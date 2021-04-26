@@ -129,7 +129,8 @@ bool Board::on_board(std::pair<int, int> position, std::pair<int, int> increment
 } // checks if a move increment from a certain position is still on the board or not
 
 std::vector<Field *>
-Board::getStraightMoves(Field *invoking, std::pair<int, int> position, std::vector<std::pair<int, int>> directions) {
+Board::getStraightMoves(Field *invoking, std::pair<int, int> position,
+                        const std::vector<std::pair<int, int>> &directions) {
     std::vector<Field *> possible_moves;
     for (auto i : directions) {
         int j = 1;
@@ -375,13 +376,13 @@ void Board::checkmate() {
         exit(EMPTY_TURN); // if it does happen the program should crash instead of exhibiting who knows what unpredictable behaviour
     }
     QString result_text;
-    if (this->under_attack(king_position, this->turn)) {
+    if (this->under_attack(king_position, this->turn)) { // king is in check with no moves left: checkmate
         if (this->turn == "white") {
             result_text = "Checkmate. Black wins.";
         } else {
             result_text = "Checkmate. White wins.";
         }
-    } else {
+    } else { // no moves left but the king is not in check: stalemate
         result_text = "Stalemate.";
     }
     this->result = new QLabel(this->parent);

@@ -1,5 +1,7 @@
 #include "field.h"
 
+#include <utility>
+
 std::map<int, QString> Field::row_names() {
     return {{0, "a"},
             {1, "b"},
@@ -77,8 +79,8 @@ Field::Field(QWidget *mainwidget, int linenumber, int position, int x_offset, in
 }
 
 void Field::changeIcon(QString p, QString pc, bool select) {
-    this->piece = p;
-    this->piece_color = pc;
+    this->piece = std::move(p);
+    this->piece_color = std::move(pc);
     QString extension;
     if (select) {
         extension = "_selected.svg";
@@ -109,7 +111,7 @@ QString Field::getPieceColor() {
     return this->piece_color;
 }
 
-bool Field::isSelected() {
+bool Field::isSelected() const {
     return this->selected;
 }
 
