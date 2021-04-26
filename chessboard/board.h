@@ -21,10 +21,12 @@ public slots:
 
 private:
     Field *last_clicked;
-    bool selected = false;
+    std::vector<Field *> selected = std::vector<Field *>();
     QString turn = "white";
     Field *en_passant_vulnerable;
     bool en_passant_possible = false;
+    std::pair<int, int> white_king_position = std::make_pair(0, 4);
+    std::pair<int, int> black_king_position = std::make_pair(7, 4);
     std::vector<Line *> lines; // will be vector of 8 Lines
     std::vector<Field *> get_field_moves(Field *invoking);
 
@@ -43,7 +45,9 @@ private:
 
     std::vector<Field *> getPawnMoves(Field *invoking, std::pair<int, int> position);
 
-    bool under_attack(Field *attacked, QString color = "");
+    bool under_attack(std::pair<int, int> position, QString color, std::vector<Field *> move = std::vector<Field *>());
+
+    Field *getKingPosition(QString color);
 };
 
 

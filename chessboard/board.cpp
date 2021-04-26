@@ -1,5 +1,4 @@
 #include "board.h"
-#include <iostream>
 
 Board::Board(QWidget *mainwidget) {
     for (int i = 0; i < 8; i++) {
@@ -44,9 +43,7 @@ Field *Board::operator[](std::pair<int, int> position) {
 void Board::field_clicked() {
     // the sender will always be a Field, and since we need to apply Field methods to it, it needs to be cast to a Field here
     Field *emitting = (Field *) (QObject::sender());
-    if (this->selected) {
-        this->selected = false;
-        std::vector<Field *> to_deselect = this->get_field_moves(this->last_clicked);
+    if (!this->selected.empty()) {
         if (emitting->isSelected()) {
             // move the piece here
             emitting->changeIcon(this->last_clicked->getPiece(), this->last_clicked->getPieceColor(),
@@ -62,7 +59,7 @@ void Board::field_clicked() {
                 if (this->en_passant_vulnerable ==
                     (*this)[std::make_pair(p1.first + opponent_pawn[emitting->getPieceColor()], p1.second)]) {
                     this->en_passant_vulnerable->changeIcon("", "", this->en_passant_vulnerable->isSelected());
-                } else {
+                } else { // check if this pawn can be captured by en passant in the next turn
                     std::pair<int, int> p2 = this->last_clicked->getPosition();
                     if ((p1.first == 3 && p2.first == 1) ||
                         (p1.first == 4 && p2.first == 6)) { // if pawn moved two fields forward
@@ -70,24 +67,53 @@ void Board::field_clicked() {
                         this->en_passant_vulnerable = emitting;
                     }
                 }
+            } else if (emitting->getPiece() == "king") {
+                if (emitting->getPieceColor() == "white") {
+                    this->white_king_position = emitting->getPosition();
+                } else {
+                    this->black_king_position = emitting->getPosition();
+                }
             }
             this->switch_turn();
         }
-        for (auto i : to_deselect) { // deselect everything
-            i->changeSelection();
+        for (auto i : this->selected) { // deselect everything
+            i->changeSelection(); // keeping a list of selected fields is faster than going over all fields to see if they are selected or not
         }
+        this->selected.clear();
         if (this->en_passant_possible && this->en_passant_vulnerable->getPieceColor() ==
                                          this->turn) { // only the second check is really necessary, but the first makes sure that this->en_passant_vulnerable exists
             this->en_passant_possible = false; // this can only be true for the duration of one turn, so after this move it is set to false
         }
     } else {
         if (emitting->getPieceColor() == this->turn) {
-            std::vector<Field *> possible_moves = this->get_field_moves(emitting);
+            std::vector<Field *> all_moves = this->get_field_moves(emitting);
+            std::vector<Field *> possible_moves;
+            for (auto i : all_moves) {
+                std::vector<Field *> mv;
+                mv.push_back(emitting);
+                mv.push_back(i);
+                std::pair<int, int> king_position;
+                QString pc = emitting->getPieceColor();
+                if (emitting->getPiece() == "king") {
+                    king_position = std::make_pair(-1, -1);
+                } else {
+                    if (pc == "white") {
+                        king_position = this->white_king_position;
+                    } else if (pc == "black") {
+                        king_position = this->black_king_position;
+                    } else { // this would mean an empty field has possible moves, this should not ever be possible
+                        exit(EMPTY_FIELD_MOVE); // if it does happen the program should crash instead of exhibiting who knows what unpredictable behaviour
+                    }
+                }
+                if (!this->under_attack(king_position, pc, mv)) {
+                    possible_moves.push_back(i);
+                }
+            }
             for (auto i : possible_moves) {
                 i->changeSelection();
+                this->selected.push_back(i);
             }
             if (!possible_moves.empty()) {
-                this->selected = true;
                 this->last_clicked = emitting;
             }
         }
@@ -254,20 +280,51 @@ void Board::switch_turn() {
     }
 }
 
-bool Board::under_attack(Field *attacked, QString color) {
-    if (color ==
-        "") { // color is used when checking if castling is possible, because empty fields don't have a piece color
-        color = attacked->getPieceColor(); // on non-empty fields, the color of the piece is used
+bool Board::under_attack(std::pair<int, int> position, QString color, std::vector<Field *> move) {
+
+    Field *from, *to;
+    std::pair<QString, QString> to_field; // needed to assure no piece get destroyed in this process
+    if (!move.empty() &&
+        move.size() == 2) { // quick and dirty way to perform functions below on the field as if this move was made
+        from = move[0];
+        to = move[1];
+        to_field = std::make_pair(to->getPiece(), to->getPieceColor());
+        to->changeIcon(from->getPiece(), from->getPieceColor(),
+                       to->isSelected());
+        from->changeIcon("", "", from->isSelected());
+    }
+    Field *attacked;
+    if (position.first == -1 && position.second == -1) { // if the king moved, we need to find the position here
+        attacked = this->getKingPosition(color);
+    } else { // otherwise we just assume the correct position was given in the function arguments
+        attacked = (*this)[position];
     }
     std::vector<Field *> enemy_moves;
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             Field *f = (*this)[std::make_pair(i, j)];
-            if (f->getPieceColor() != color and f->getPieceColor() != "") {
+            if (f->getPieceColor() != color && f->getPieceColor() != "") {
                 std::vector<Field *> to_add = this->get_field_moves(f);
                 enemy_moves.insert(enemy_moves.end(), to_add.begin(), to_add.end());
             }
         }
     }
+    if (!move.empty() && move.size() == 2) { // revert the move because it hasn't actually happened yet
+        from->changeIcon(to->getPiece(), to->getPieceColor(),
+                         from->isSelected());
+        to->changeIcon(to_field.first, to_field.second, to->isSelected());
+    }
     return std::find(enemy_moves.begin(), enemy_moves.end(), attacked) != enemy_moves.end();
+}
+
+Field *Board::getKingPosition(QString color) {
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            Field *f = (*this)[std::make_pair(i, j)];
+            if (f->getPieceColor() == color && f->getPiece() == "king") {
+                return f; // exactly one of these exists, so if we found it, we're sure it's the only one and we can return immediately
+            }
+        }
+    }
+    exit(KING_MISSING);
 }

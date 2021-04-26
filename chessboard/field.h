@@ -5,6 +5,7 @@
 #include <QPushButton>
 #include <algorithm>
 #include <map>
+#include "../exit_codes.h"
 
 class Field : public QPushButton {
 public:
