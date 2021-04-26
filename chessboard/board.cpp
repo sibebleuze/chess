@@ -50,7 +50,7 @@ void Board::field_clicked() {
                                  emitting->isSelected());
             this->last_clicked->changeIcon("", "", this->last_clicked->isSelected());
             // selection status stays the same here, they all get deselected below
-            // TODO: pawns promoting, en passant and castling
+            // TODO: pawns promoting and castling
             // at this point the piece has moved, so actions where this->last_clicked was used before are now performed on emitting
             if (emitting->getPiece() == "pawn") { // take the en passant captured pawn off the board
                 std::map<QString, int> opponent_pawn = {{"black", 1},
@@ -235,7 +235,6 @@ std::vector<Field *> Board::getPawnMoves(Field *invoking, std::pair<int, int> po
             }
         }
     }
-    // TODO: en passant
     return possible_moves;
 }
 

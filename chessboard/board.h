@@ -15,13 +15,15 @@ public:
 
     Field *operator[](std::pair<int, int> position);
 
+    void switch_turn();
+
 public slots:
 
     void field_clicked();
 
 private:
     Field *last_clicked;
-    std::vector<Field *> selected = std::vector<Field *>();
+    std::vector<Field *> selected;
     QString turn = "white";
     Field *en_passant_vulnerable;
     bool en_passant_possible = false;
@@ -33,8 +35,6 @@ private:
     static std::map<QString, int> row_numbers();
 
     bool on_board(std::pair<int, int> position, std::pair<int, int> increment);
-
-    void switch_turn();
 
     std::vector<Field *> getKnightMoves(Field *invoking, std::pair<int, int> position);
 
