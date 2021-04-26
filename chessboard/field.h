@@ -11,9 +11,9 @@ class Field : public QPushButton {
 public:
     Field(QWidget *mainwidget,
           int linenumber, int position, // position of the field on the board (8x8)
-          int x_offset = 100, int = 500); // x and y coordinate of bottom left corner of board (pixels)
+          int x_offset, int y_offset); // x and y coordinate of bottom left corner of board (pixels)
 
-    void changeIcon(QString piece = "", QString piece_color = "", bool select = false);
+    void changeIcon(QString p = "", QString pc = "", bool select = false);
 
     void changeSelection();
 
@@ -26,6 +26,7 @@ public:
     bool isSelected();
 
 private:
+    static int side;
     QString field_color;
     QString piece;
     QString piece_color;

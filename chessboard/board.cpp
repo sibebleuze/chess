@@ -1,9 +1,11 @@
 #include "board.h"
 
-Board::Board(QWidget *mainwidget) {
+Board::Board(QWidget *mainwidget, int x_offset, int y_offset) {
+    this->parent = mainwidget;
+    this->bottomleft = std::make_pair(x_offset, y_offset);
     for (int i = 0; i < 8; i++) {
         Line *l;
-        l = new Line(mainwidget, i);
+        l = new Line(mainwidget, i, x_offset, y_offset);
         for (int j = 0; j < 8; j++) {
             QObject::connect((*l)[j], &QPushButton::clicked, this, &Board::field_clicked);
         }
@@ -16,6 +18,7 @@ Board::~Board() {
         delete this->lines.back();
         this->lines.pop_back();
     }
+    delete this->result;
 }
 
 std::map<QString, int> Board::row_numbers() {
@@ -29,10 +32,10 @@ std::map<QString, int> Board::row_numbers() {
             {"h", 7}}; // map of row names to line numbers
 }
 
-Field *Board::operator[](QString name) { // overload bracket operator, chess notation has fields a1 -> h8
+Field *Board::operator[](QString &name) { // overload bracket operator, chess notation has fields a1 -> h8
     // if e.g. name = 'a1',
     int row = Board::row_numbers()[name.left(1)]; // then row = 0
-    int column = name.right(1).toInt() - 1; // and column = 0
+    int column = name.rightRef(1).toInt() - 1; // and column = 0
     return (*this->lines[row])[column]; // and then this will return (a pointer to) the bottom left field of the board
 } // TODO: check if this is ever used, if not, dismiss
 
@@ -42,7 +45,7 @@ Field *Board::operator[](std::pair<int, int> position) {
 
 void Board::field_clicked() {
     // the sender will always be a Field, and since we need to apply Field methods to it, it needs to be cast to a Field here
-    Field *emitting = (Field *) (QObject::sender());
+    auto *emitting = (Field *) (QObject::sender());
     if (!this->selected.empty()) {
         if (emitting->isSelected()) {
             // move the piece here
@@ -131,14 +134,14 @@ Board::getStraightMoves(Field *invoking, std::pair<int, int> position, std::vect
     for (auto i : directions) {
         int j = 1;
         Field *f;
-        if (this->on_board(position, i)) {
+        if (Board::on_board(position, i)) {
             do {
                 f = (*this)[std::make_pair(position.first + j * i.first, position.second + j * i.second)];
                 if (f->getPieceColor() != invoking->getPieceColor()) { // can't 'capture' own pieces
                     possible_moves.push_back(f);
                 }
                 j += 1;
-            } while (f->getPiece() == "" && this->on_board(position, std::make_pair(j * i.first, j * i.second)));
+            } while (f->getPiece() == "" && Board::on_board(position, std::make_pair(j * i.first, j * i.second)));
         }
     }
     return possible_moves;
@@ -155,7 +158,7 @@ std::vector<Field *> Board::getKnightMoves(Field *invoking, std::pair<int, int> 
                                                      {-1, -2},
                                                      {-2, -1}}; // all moves a knight could make
     for (auto i : knight_moves) {
-        if (this->on_board(position, i)) {
+        if (Board::on_board(position, i)) {
             Field *f = (*this)[std::make_pair(position.first + i.first, position.second + i.second)];
             if (f->getPieceColor() != invoking->getPieceColor()) { // can't 'capture' own pieces
                 possible_moves.push_back(f);
@@ -176,7 +179,7 @@ std::vector<Field *> Board::getKingMoves(Field *invoking, std::pair<int, int> po
                                                    {-1, 0},
                                                    {-1, -1}}; // all moves a king could make (except castling)
     for (auto i : king_moves) {
-        if (this->on_board(position, i)) {
+        if (Board::on_board(position, i)) {
             Field *f = (*this)[std::make_pair(position.first + i.first, position.second + i.second)];
             if (f->getPieceColor() != invoking->getPieceColor()) { // can't 'capture' own pieces
                 possible_moves.push_back(f);
@@ -209,20 +212,20 @@ std::vector<Field *> Board::getPawnMoves(Field *invoking, std::pair<int, int> po
                         {-1, -1}};
         en_passant = {1, 0};
     }
-    if (this->on_board(position, one_forward)) {
+    if (Board::on_board(position, one_forward)) {
         Field *f = (*this)[std::make_pair(position.first + one_forward.first, position.second)];
         if (f->getPiece() == "") {
             possible_moves.push_back(f);
             if (position.first == start_row) { // pawn can move forward 2 fields from starting position
-                Field *f = (*this)[std::make_pair(position.first + two_forward.first, position.second)];
-                if (f->getPiece() == "") {
-                    possible_moves.push_back(f);
+                Field *g = (*this)[std::make_pair(position.first + two_forward.first, position.second)];
+                if (g->getPiece() == "") {
+                    possible_moves.push_back(g);
                 }
             }
         }
     }
     for (auto i : pawn_capture) {
-        if (this->on_board(position, i)) {
+        if (Board::on_board(position, i)) {
             Field *f = (*this)[std::make_pair(position.first + i.first, position.second + i.second)];
             if (f->getPieceColor() != invoking->getPieceColor() && f->getPieceColor() != "") {
                 possible_moves.push_back(f);
@@ -277,10 +280,10 @@ void Board::switch_turn() {
     } else {
         this->turn = "white";
     }
+    this->checkmate();
 }
 
-bool Board::under_attack(std::pair<int, int> position, QString color, std::vector<Field *> move) {
-
+bool Board::under_attack(std::pair<int, int> position, QString &color, std::vector<Field *> move) {
     Field *from, *to;
     std::pair<QString, QString> to_field; // needed to assure no piece get destroyed in this process
     if (!move.empty() &&
@@ -316,7 +319,7 @@ bool Board::under_attack(std::pair<int, int> position, QString color, std::vecto
     return std::find(enemy_moves.begin(), enemy_moves.end(), attacked) != enemy_moves.end();
 }
 
-Field *Board::getKingPosition(QString color) {
+Field *Board::getKingPosition(QString &color) {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             Field *f = (*this)[std::make_pair(i, j)];
@@ -326,4 +329,64 @@ Field *Board::getKingPosition(QString color) {
         }
     }
     exit(KING_MISSING);
+}
+
+void Board::checkmate() {
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            Field *f = (*this)[std::make_pair(i, j)];
+            if (f->getPieceColor() == this->turn) {
+                std::vector<Field *> all_moves = this->get_field_moves(f);
+                std::vector<Field *> possible_moves;
+                for (auto k : all_moves) {
+                    std::vector<Field *> mv;
+                    mv.push_back(f);
+                    mv.push_back(k);
+                    std::pair<int, int> king_position;
+                    QString pc = f->getPieceColor();
+                    if (f->getPiece() == "king") {
+                        king_position = std::make_pair(-1, -1);
+                    } else {
+                        if (pc == "white") {
+                            king_position = this->white_king_position;
+                        } else if (pc == "black") {
+                            king_position = this->black_king_position;
+                        } else { // this would mean an empty field has possible moves, this should not ever be possible
+                            exit(EMPTY_FIELD_MOVE); // if it does happen the program should crash instead of exhibiting who knows what unpredictable behaviour
+                        }
+                    }
+                    if (!this->under_attack(king_position, pc, mv)) {
+                        possible_moves.push_back(k);
+                    }
+                }
+                if (!possible_moves.empty()) {
+                    return; // the player is not out of moves yet, so there is no checkmate at this point
+                }
+            }
+        }
+    }
+    // if this point is reached, the player is out of moves and checkmate or stalemate is reached
+    std::pair<int, int> king_position;
+    if (this->turn == "white") {
+        king_position = this->white_king_position;
+    } else if (this->turn == "black") {
+        king_position = this->black_king_position;
+    } else { // this would mean an empty field has possible moves, this should not ever be possible
+        exit(EMPTY_TURN); // if it does happen the program should crash instead of exhibiting who knows what unpredictable behaviour
+    }
+    QString result_text;
+    if (this->under_attack(king_position, this->turn)) {
+        if (this->turn == "white") {
+            result_text = "Checkmate. Black wins.";
+        } else {
+            result_text = "Checkmate. White wins.";
+        }
+    } else {
+        result_text = "Stalemate.";
+    }
+    this->result = new QLabel(this->parent);
+    this->result->setObjectName(QString::fromUtf8("result"));
+    this->result->setGeometry(QRect(this->bottomleft.first, this->bottomleft.second + 30, 400, 30));
+    this->result->setText(result_text);
+    this->result->show();
 }

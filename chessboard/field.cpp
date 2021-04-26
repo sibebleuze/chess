@@ -52,6 +52,8 @@ std::map<int, std::vector<QString>> Field::pieces() {
     }; // map of linenumber and position in line to piece on field
 }
 
+int Field::side = 50; // all fields are squares with this height and width
+
 Field::Field(QWidget *mainwidget, int linenumber, int position, int x_offset, int y_offset) :
         QPushButton(mainwidget) {
     this->field_color = Field::field_colors()[linenumber][position];
@@ -60,7 +62,8 @@ Field::Field(QWidget *mainwidget, int linenumber, int position, int x_offset, in
     this->position = std::make_pair(linenumber, position);
     this->setObjectName(
             Field::row_names()[linenumber] + QString(position + 1)); // e.g. 'a1' when linenumber = 0 and position = 0
-    this->setGeometry(QRect(x_offset + 50 * position, y_offset - 50 * linenumber, 50, 50));
+    this->setGeometry(QRect(x_offset + Field::side * position, y_offset - Field::side * (linenumber + 1), Field::side,
+                            Field::side));
     QString filename;
     if (this->piece != "") {
         filename = "../icons/" + this->piece_color + "_" + this->piece + "_" + this->field_color + ".svg";
@@ -68,14 +71,14 @@ Field::Field(QWidget *mainwidget, int linenumber, int position, int x_offset, in
         filename = "../icons/" + this->field_color + ".svg";
     }
     this->setIcon(QIcon(filename));
-    this->setIconSize(this->size());
+    this->setIconSize(Field::size());
     this->setFixedSize(this->size());
     this->show();
 }
 
-void Field::changeIcon(QString piece, QString piece_color, bool select) {
-    this->piece = piece;
-    this->piece_color = piece_color;
+void Field::changeIcon(QString p, QString pc, bool select) {
+    this->piece = p;
+    this->piece_color = pc;
     QString extension;
     if (select) {
         extension = "_selected.svg";

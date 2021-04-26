@@ -9,8 +9,8 @@ class Line {
 public:
     Line(QWidget *mainwidget,
          int linenumber, // chess board has 8 lines/rows, constructor needs to know which one it is
-         int x_offset = 100, // x coordinate of left of board
-         int y_offset = 500); // y coordinate of bottom of board
+         int x_offset, // x coordinate of left of board
+         int y_offset); // y coordinate of bottom of board
 
     ~Line();
 
