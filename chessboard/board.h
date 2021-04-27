@@ -66,7 +66,7 @@ private:
 
     std::vector<Field *> get_field_moves(Field *invoking);
 
-    bool under_attack(std::pair<int, int> position, QString color, std::vector<Field *> move = std::vector<Field *>());
+    bool under_attack(std::pair<int, int> position, QString &color, std::vector<Field *> move = std::vector<Field *>());
 
     Field *getKingPosition(QString &color);
 
