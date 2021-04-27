@@ -56,15 +56,18 @@ std::map<int, std::vector<QString>> Field::pieces() {
 
 int Field::side = 50; // all fields are squares with this height and width
 
-Field::Field(QWidget *mainwidget, int linenumber, int position, int x_offset, int y_offset) :
+Field::Field(QWidget *mainwidget, int linenumber, int rownumber, int x_offset, int y_offset) :
         QPushButton(mainwidget) {
-    this->field_color = Field::field_colors()[linenumber][position];
-    this->piece = Field::pieces()[linenumber][position];
+    this->field_color = Field::field_colors()[linenumber][rownumber];
+    this->piece = Field::pieces()[linenumber][rownumber];
     this->piece_color = Field::piece_colors()[linenumber];
-    this->position = std::make_pair(linenumber, position);
+    this->position = std::make_pair(linenumber, rownumber);
     this->setObjectName(
-            Field::row_names()[linenumber] + QString(position + 1)); // e.g. 'a1' when linenumber = 0 and position = 0
-    this->setGeometry(QRect(x_offset + Field::side * position, y_offset - Field::side * (linenumber + 1), Field::side,
+            Field::row_names()[linenumber] + QString(rownumber + 1)); // e.g. 'a1' when linenumber = 0 and position = 0
+    this->setGeometry(QRect(x_offset + Field::side * rownumber,
+                            y_offset - Field::side * (linenumber +
+                                                      1), // linenumber + 1, because otherwise (x_offset, y_offset) isn't the bottom left point of the board
+                            Field::side,
                             Field::side));
     QString filename;
     if (this->piece != "") {

@@ -10,7 +10,7 @@
 class Field : public QPushButton {
 public:
     Field(QWidget *mainwidget,
-          int linenumber, int position, // position of the field on the board (8x8)
+          int linenumber, int rownumber, // position of the field on the board (8x8)
           int x_offset, int y_offset); // x and y coordinate of bottom left corner of board (pixels)
 
 

@@ -53,7 +53,7 @@ void Board::field_clicked() {
                                  emitting->isSelected());
             this->last_clicked->changeIcon("", "", this->last_clicked->isSelected());
             // selection status stays the same here, they all get deselected below
-            // TODO: pawns promoting and castling
+            // TODO: pawns promoting
             // at this point the piece has moved, so actions where this->last_clicked was used before are now performed on emitting
             if (emitting->getPiece() == "pawn") { // take the en passant captured pawn off the board
                 std::map<QString, int> opponent_pawn = {{"black", 1},
@@ -75,6 +75,19 @@ void Board::field_clicked() {
                     this->white_king_position = emitting->getPosition();
                 } else {
                     this->black_king_position = emitting->getPosition();
+                }
+                std::pair<int, int> empos = emitting->getPosition();
+                if (std::abs(this->last_clicked->getPosition().second - empos.second) == 2) {
+                    Field *rook_from, *rook_to;
+                    if (empos.second == 6) { // castling king-side
+                        rook_from = (*this)[std::make_pair(empos.first, 7)];
+                        rook_to = (*this)[std::make_pair(empos.first, 5)];
+                    } else if (empos.second == 2) { // castling queen-side
+                        rook_from = (*this)[std::make_pair(empos.first, 0)];
+                        rook_to = (*this)[std::make_pair(empos.first, 3)];
+                    }
+                    rook_to->changeIcon(rook_from->getPiece(), rook_from->getPieceColor(), rook_to->isSelected());
+                    rook_from->changeIcon("", "", rook_from->isSelected());
                 }
             }
             this->switch_turn();
