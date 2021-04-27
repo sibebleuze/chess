@@ -38,6 +38,14 @@ private:
     // initial values below are the starting positions of both kings
     std::pair<int, int> white_king_position = std::make_pair(0, 4);
     std::pair<int, int> black_king_position = std::make_pair(7, 4);
+    // booleans below keep track of which of the kings and rooks already moved, this is needed for castling
+    bool white_king_moved = false;
+    bool black_king_moved = false;
+    bool white_rook_left_moved = false;
+    bool white_rook_right_moved = false;
+    bool black_rook_left_moved = false;
+    bool black_rook_right_moved = false;
+
     std::vector<Line *> lines; // will be vector of 8 Lines
 
     static std::map<QString, int> row_numbers();
@@ -47,21 +55,21 @@ private:
     std::vector<Field *> selected;
 
 
-    std::vector<Field *> get_field_moves(Field *invoking);
-
     std::vector<Field *> getKnightMoves(Field *invoking, std::pair<int, int> position);
 
     std::vector<Field *>
     getStraightMoves(Field *invoking, std::pair<int, int> position, const std::vector<std::pair<int, int>> &directions);
 
-    std::vector<Field *> getKingMoves(Field *invoking, std::pair<int, int> position);
-
     std::vector<Field *> getPawnMoves(Field *invoking, std::pair<int, int> position);
 
+    std::vector<Field *> getKingMoves(Field *invoking, std::pair<int, int> position);
 
-    bool under_attack(std::pair<int, int> position, QString &color, std::vector<Field *> move = std::vector<Field *>());
+    std::vector<Field *> get_field_moves(Field *invoking);
+
+    bool under_attack(std::pair<int, int> position, QString color, std::vector<Field *> move = std::vector<Field *>());
 
     Field *getKingPosition(QString &color);
+
 
     void checkmate();
 };

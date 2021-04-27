@@ -72,9 +72,11 @@ void Board::field_clicked() {
                 }
             } else if (emitting->getPiece() == "king") {
                 if (emitting->getPieceColor() == "white") {
-                    this->white_king_position = emitting->getPosition();
+                    this->white_king_position = emitting->getPosition(); // we need to keep track of the king position for checking if it is in check
+                    this->white_king_moved = true; // we need to keep track of the king movement for the castling requirements
                 } else {
-                    this->black_king_position = emitting->getPosition();
+                    this->black_king_position = emitting->getPosition(); // we need to keep track of the king position for checking if it is in check
+                    this->black_king_moved = true; // we need to keep track of the king movement for the castling requirements
                 }
                 std::pair<int, int> empos = emitting->getPosition();
                 if (std::abs(this->last_clicked->getPosition().second - empos.second) == 2) {
@@ -82,12 +84,23 @@ void Board::field_clicked() {
                     if (empos.second == 6) { // castling king-side
                         rook_from = (*this)[std::make_pair(empos.first, 7)];
                         rook_to = (*this)[std::make_pair(empos.first, 5)];
-                    } else if (empos.second == 2) { // castling queen-side
+                    } else { // castling queen-side
                         rook_from = (*this)[std::make_pair(empos.first, 0)];
                         rook_to = (*this)[std::make_pair(empos.first, 3)];
                     }
                     rook_to->changeIcon(rook_from->getPiece(), rook_from->getPieceColor(), rook_to->isSelected());
                     rook_from->changeIcon("", "", rook_from->isSelected());
+                }
+            } else if (emitting->getPiece() ==
+                       "rook") { // we need to keep track of the rook movement for the castling requirements
+                if (emitting->getPosition() == std::make_pair(0, 0)) {
+                    this->white_rook_left_moved = true;
+                } else if (emitting->getPosition() == std::make_pair(0, 7)) {
+                    this->white_rook_right_moved = true;
+                } else if (emitting->getPosition() == std::make_pair(7, 0)) {
+                    this->black_rook_left_moved = true;
+                } else if (emitting->getPosition() == std::make_pair(7, 7)) {
+                    this->black_rook_right_moved = true;
                 }
             }
             this->switch_turn();
@@ -122,7 +135,46 @@ void Board::field_clicked() {
                     }
                 }
                 if (!this->under_attack(king_position, pc, mv)) {
-                    possible_moves.push_back(i);
+                    if (emitting->getPiece() == "king" &&
+                        std::abs(emitting->getPosition().second - i->getPosition().second) ==
+                        2) { // we need to check the remaining castling requirements here
+                        std::pair<int, int> king_pos;
+                        bool king_moved, rook_left_moved, rook_right_moved;
+                        int row;
+                        if (this->turn == "white") {
+                            king_pos = this->white_king_position;
+                            king_moved = this->white_king_moved;
+                            rook_left_moved = this->white_rook_left_moved;
+                            rook_right_moved = this->white_rook_right_moved;
+                            row = 0;
+                        } else {
+                            king_pos = this->black_king_position;
+                            king_moved = this->black_king_moved;
+                            rook_left_moved = this->black_rook_left_moved;
+                            rook_right_moved = this->black_rook_right_moved;
+                            row = 7;
+                        }
+                        if (!this->under_attack(king_pos, this->turn)) {
+                            if (!king_moved) {
+                                std::pair<int, int> pos1 = std::make_pair(row, 3);
+                                std::pair<int, int> pos2 = std::make_pair(row, 2);
+                                std::pair<int, int> pos3 = std::make_pair(row, 5);
+                                std::pair<int, int> pos4 = std::make_pair(row, 6);
+                                if ((i->getPosition().second == pos2.second &&
+                                     // if the chosen move is left castling and the appropriate fields are not under attack
+                                     !(rook_left_moved || this->under_attack(pos1, this->turn) ||
+                                       this->under_attack(pos2, this->turn))) || // or
+                                    (i->getPosition().second == pos4.second &&
+                                     // if the chosen move is right castling and the appropriate fields are not under attack
+                                     !(rook_right_moved || this->under_attack(pos3, this->turn) ||
+                                       this->under_attack(pos4, this->turn)))) {
+                                    possible_moves.push_back(i);
+                                }
+                            }
+                        }
+                    } else { // if the king is not castling (or another piece entirely is moving), the checks that happened before this suffice
+                        possible_moves.push_back(i);
+                    }
                 }
             }
             for (auto i : possible_moves) {
@@ -200,7 +252,33 @@ std::vector<Field *> Board::getKingMoves(Field *invoking, std::pair<int, int> po
             }
         }
     }
-    // TODO: castling
+    bool king_moved, rook_left_moved, rook_right_moved;
+    int row;
+    if (invoking->getPieceColor() == "white") {
+        king_moved = this->white_king_moved;
+        rook_left_moved = this->white_rook_left_moved;
+        rook_right_moved = this->white_rook_right_moved;
+        row = 0;
+    } else {
+        king_moved = this->black_king_moved;
+        rook_left_moved = this->black_rook_left_moved;
+        rook_right_moved = this->black_rook_right_moved;
+        row = 7;
+    }
+    if (!king_moved) {
+        std::pair<int, int> pos1 = std::make_pair(row, 3);
+        std::pair<int, int> pos2 = std::make_pair(row, 2);
+        std::pair<int, int> pos3 = std::make_pair(row, 5);
+        std::pair<int, int> pos4 = std::make_pair(row, 6);
+        if (!rook_left_moved && (*this)[pos1]->getPiece() == "" && (*this)[pos2]->getPiece() == "") {
+            Field *f = (*this)[pos2];
+            possible_moves.push_back(f);
+        }
+        if (!rook_right_moved && (*this)[pos3]->getPiece() == "" && (*this)[pos4]->getPiece() == "") {
+            Field *f = (*this)[pos4];
+            possible_moves.push_back(f);
+        }
+    }
     return possible_moves;
 }
 
@@ -297,7 +375,7 @@ void Board::switch_turn() {
     this->checkmate();
 }
 
-bool Board::under_attack(std::pair<int, int> position, QString &color, std::vector<Field *> move) {
+bool Board::under_attack(std::pair<int, int> position, QString color, std::vector<Field *> move) {
     Field *from, *to;
     std::pair<QString, QString> to_field; // needed to assure no piece get destroyed in this process
     if (!move.empty() &&
