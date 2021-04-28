@@ -73,6 +73,7 @@ private:
     std::vector<Field *> white_promoting;
     std::vector<Field *> black_promoting;
     bool promoting = false;
+    Field *promoting_field;
 
 
     void checkmate();

@@ -63,7 +63,24 @@ Field *Board::operator[](std::pair<int, int> position) {
 void Board::field_clicked() {
     // the sender will always be a Field, and since we need to apply Field methods to it, it needs to be cast to a Field here
     auto *emitting = (Field *) (QObject::sender());
-    if (!this->selected.empty()) {
+    if (this->promoting) {
+        std::vector<Field *> promoting_fields;
+        if (emitting->getPieceColor() == "white") {
+            promoting_fields = this->white_promoting;
+        } else if (emitting->getPieceColor() == "black") {
+            promoting_fields = this->black_promoting;
+        } else {
+            return; // this field is empty and is certainly not a field indicating what piece the player wants to promote to
+        }
+        if (std::find(promoting_fields.begin(), promoting_fields.end(), emitting) != promoting_fields.end()) {
+            this->promoting_field->changeIcon(emitting->getPiece(), emitting->getPieceColor(),
+                                              this->promoting_field->isSelected());
+            this->promoting = false;
+            for (auto f : promoting_fields) {
+                f->setVisible(false);
+            }
+        }
+    } else if (!this->selected.empty()) {
         if (emitting->isSelected()) {
             // move the piece here
             emitting->changeIcon(this->last_clicked->getPiece(), this->last_clicked->getPieceColor(),
@@ -73,12 +90,29 @@ void Board::field_clicked() {
             // TODO: pawns promoting
             // at this point the piece has moved, so actions where this->last_clicked was used before are now performed on emitting
             if (emitting->getPiece() == "pawn") { // take the en passant captured pawn off the board
-                std::map<QString, int> opponent_pawn = {{"black", 1},
-                                                        {"white", -1}};
+                std::vector<Field *> promoting_fields;
+                int opponent_pawn, last_row;
+                if (emitting->getPieceColor() == "white") {
+                    opponent_pawn = -1;
+                    promoting_fields = this->white_promoting;
+                    last_row = 7;
+                } else {
+                    opponent_pawn = 1;
+                    promoting_fields = this->black_promoting;
+                    last_row = 0;
+                }
                 std::pair<int, int> p1 = emitting->getPosition();
                 if (this->en_passant_vulnerable ==
-                    (*this)[std::make_pair(p1.first + opponent_pawn[emitting->getPieceColor()], p1.second)]) {
+                    (*this)[std::make_pair(p1.first + opponent_pawn, p1.second)]) {
                     this->en_passant_vulnerable->changeIcon("", "", this->en_passant_vulnerable->isSelected());
+                } else if (p1.first == last_row) {
+                    // this else if for promoting might look a bit lost between the if and the else for en passant,
+                    // but since these moves cannot possibly occur at the same time, it is ok for them to be here together
+                    this->promoting = true;
+                    this->promoting_field = emitting;
+                    for (auto f : promoting_fields) {
+                        f->setVisible(true);
+                    }
                 } else { // check if this pawn can be captured by en passant in the next turn
                     std::pair<int, int> p2 = this->last_clicked->getPosition();
                     if ((p1.first == 3 && p2.first == 1) ||
