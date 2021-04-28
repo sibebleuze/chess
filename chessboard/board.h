@@ -29,6 +29,7 @@ private:
 
     std::pair<int, int> bottomleft;
     QLabel *result = nullptr; // needs to be initialised, because it will be deleted in the Board destructor
+    std::vector<QLabel *> row_column_nametags;
 
     bool en_passant_possible = false;
     // these don't need to be explicitly deleted in the Board destructor, they are one of the fields on the board so they are deleted through the Line destructor
@@ -73,7 +74,7 @@ private:
     std::vector<Field *> white_promoting;
     std::vector<Field *> black_promoting;
     bool promoting = false;
-    Field *promoting_field;
+    Field *promoting_field = nullptr;
 
 
     void checkmate();

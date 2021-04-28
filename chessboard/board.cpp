@@ -3,14 +3,6 @@
 Board::Board(QWidget *mainwidget, int x_offset, int y_offset) {
     this->parent = mainwidget;
     this->bottomleft = std::make_pair(x_offset, y_offset);
-    for (int i = 0; i < 8; i++) {
-        Line *l;
-        l = new Line(mainwidget, i, x_offset, y_offset);
-        for (int j = 0; j < 8; j++) {
-            QObject::connect((*l)[j], &QPushButton::clicked, this, &Board::field_clicked);
-        }
-        this->lines.push_back(l);
-    }
     for (int i = 0; i < 4; i++) {
         Field *g, *h;
         g = new Field(mainwidget, 0, i, x_offset + 425 - 50 * i, y_offset - 100 - 50 * i);
@@ -21,20 +13,49 @@ Board::Board(QWidget *mainwidget, int x_offset, int y_offset) {
         h->setVisible(false);
         this->white_promoting.push_back(g);
         this->black_promoting.push_back(h);
+        for (int j = 0; j < 2; j++) {
+            Line *l;
+            l = new Line(mainwidget, 2 * i + j, x_offset, y_offset);
+            for (int k = 0; k < 8; k++) {
+                QObject::connect((*l)[k], &QPushButton::clicked, this, &Board::field_clicked);
+            }
+            this->lines.push_back(l);
+            QLabel *q;
+            q = new QLabel(mainwidget);
+            q->setObjectName("column" + QString::number(2 * i + j));
+            q->setGeometry(QRect(this->bottomleft.first + 20 + 50 * (2 * i + j), this->bottomleft.second, 25, 25));
+            q->setText(Field::row_names()[2 * i + j]);
+            q->show();
+            this->row_column_nametags.push_back(q);
+            QLabel *r;
+            r = new QLabel(mainwidget);
+            r->setObjectName("row" + QString::number(2 * i + j));
+            r->setGeometry(QRect(this->bottomleft.first - 15, this->bottomleft.second - 35 - 50 * (2 * i + j), 25, 25));
+            r->setText(QString::number(2 * i + j + 1));
+            r->show();
+            this->row_column_nametags.push_back(r);
+        }
     }
 }
 
 Board::~Board() {
-    for (int i = 0; i < 8; i++) {
-        delete this->lines.back();
-        this->lines.pop_back();
-    }
     delete this->result;
     for (int i = 0; i < 4; i++) {
+        // these first two vectors have a length of 4
         delete this->white_promoting.back();
         this->white_promoting.pop_back();
         delete this->black_promoting.back();
         this->black_promoting.pop_back();
+        for (int j = 0; j < 2; j++) {
+            // this one has a length of 8
+            delete this->lines.back();
+            this->lines.pop_back();
+            for (int k = 0; k < 2; k++) {
+                // and this one has a length of 16
+                delete this->row_column_nametags.back();
+                this->row_column_nametags.pop_back();
+            }
+        }
     }
 }
 
@@ -54,7 +75,7 @@ Field *Board::operator[](QString &name) { // overload bracket operator, chess no
     int row = Board::row_numbers()[name.left(1)]; // then row = 0
     int column = name.rightRef(1).toInt() - 1; // and column = 0
     return (*this->lines[row])[column]; // and then this will return (a pointer to) the bottom left field of the board
-} // TODO: check if this is ever used, if not, dismiss
+} // TODO: check if this is ever used, if not, dismiss (including Board::row_numbers above)
 
 Field *Board::operator[](std::pair<int, int> position) {
     return (*this->lines[position.first])[position.second];
@@ -87,7 +108,6 @@ void Board::field_clicked() {
                                  emitting->isSelected());
             this->last_clicked->changeIcon("", "", this->last_clicked->isSelected());
             // selection status stays the same here, they all get deselected below
-            // TODO: pawns promoting
             // at this point the piece has moved, so actions where this->last_clicked was used before are now performed on emitting
             if (emitting->getPiece() == "pawn") { // take the en passant captured pawn off the board
                 std::vector<Field *> promoting_fields;

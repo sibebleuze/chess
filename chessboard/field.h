@@ -27,6 +27,8 @@ public:
 
     bool isSelected() const;
 
+    static std::map<int, QString> row_names();
+
 private:
     QString field_color;
     QString piece;
@@ -38,8 +40,6 @@ private:
 
 
     static int side;
-
-    static std::map<int, QString> row_names();
 
     static std::map<int, std::vector<QString>> field_colors();
 
