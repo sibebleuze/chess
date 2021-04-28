@@ -70,6 +70,10 @@ private:
 
     Field *getKingPosition(QString &color);
 
+    std::vector<Field *> white_promoting;
+    std::vector<Field *> black_promoting;
+    bool promoting = false;
+
 
     void checkmate();
 };

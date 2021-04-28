@@ -11,6 +11,17 @@ Board::Board(QWidget *mainwidget, int x_offset, int y_offset) {
         }
         this->lines.push_back(l);
     }
+    for (int i = 0; i < 4; i++) {
+        Field *g, *h;
+        g = new Field(mainwidget, 0, i, x_offset + 425 - 50 * i, y_offset - 100 - 50 * i);
+        h = new Field(mainwidget, 7, i, x_offset + 425 - 50 * i, y_offset + 250 - 50 * i);
+        QObject::connect(g, &QPushButton::clicked, this, &Board::field_clicked);
+        QObject::connect(h, &QPushButton::clicked, this, &Board::field_clicked);
+        g->setVisible(false);
+        h->setVisible(false);
+        this->white_promoting.push_back(g);
+        this->black_promoting.push_back(h);
+    }
 }
 
 Board::~Board() {
@@ -19,6 +30,12 @@ Board::~Board() {
         this->lines.pop_back();
     }
     delete this->result;
+    for (int i = 0; i < 4; i++) {
+        delete this->white_promoting.back();
+        this->white_promoting.pop_back();
+        delete this->black_promoting.back();
+        this->black_promoting.pop_back();
+    }
 }
 
 std::map<QString, int> Board::row_numbers() {
@@ -111,7 +128,7 @@ void Board::field_clicked() {
         this->selected.clear();
         if (this->en_passant_possible && this->en_passant_vulnerable->getPieceColor() ==
                                          this->turn) { // only the second check is really necessary, but the first makes sure that this->en_passant_vulnerable exists
-            this->en_passant_possible = false; // this can only be true for the duration of one turn, so after this move it is set to false
+            this->en_passant_possible = false; // this can only be true for the duration of one turn, so after one move it is set to false
         }
     } else {
         if (emitting->getPieceColor() == this->turn) {
@@ -139,7 +156,7 @@ void Board::field_clicked() {
                         std::abs(emitting->getPosition().second - i->getPosition().second) ==
                         2) { // we need to check the remaining castling requirements here
                         std::pair<int, int> king_pos;
-                        bool king_moved, rook_left_moved, rook_right_moved;
+                        bool king_moved;
                         int row;
                         if (this->turn == "white") {
                             king_pos = this->white_king_position;
