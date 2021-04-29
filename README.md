@@ -13,7 +13,7 @@ Custom exit codes:
 
 To build from source, run the following commands from the chess directory:
 
-* unzip nvwa-1.1.zip
+* unzip nvwa-1.1.zip (or get it from https://github.com/adah1972/nvwa)
 * cmake .
 * make
 
