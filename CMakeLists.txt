@@ -25,6 +25,7 @@ add_executable(chess
         "chessboard/board.cpp"
         "chessboard/line.cpp"
         "chessboard/field.cpp"
+        "icons/qtres.qrc"
         "nvwa-1.1/nvwa/debug_new.cpp") # catch some memory leaks
 # TODO: remove nvwa from final project
 

@@ -1,6 +1,7 @@
 #include "field.h"
 
 #include <utility>
+#include <QCoreApplication>
 
 std::map<int, QString> Field::row_names() {
     return {{0, "a"},
@@ -71,9 +72,9 @@ Field::Field(QWidget *mainwidget, int linenumber, int rownumber, int x_offset, i
                             Field::side));
     QString filename;
     if (this->piece != "") {
-        filename = "../icons/" + this->piece_color + "_" + this->piece + "_" + this->field_color + ".svg";
+        filename = "://" + this->piece_color + "_" + this->piece + "_" + this->field_color + ".svg";
     } else {
-        filename = "../icons/" + this->field_color + ".svg";
+        filename = "://" + this->field_color + ".svg";
     }
     this->setIcon(QIcon(filename));
     this->setIconSize(Field::size());
@@ -92,9 +93,9 @@ void Field::changeIcon(QString p, QString pc, bool select) {
     }
     QString filename;
     if (this->piece != "") {
-        filename = "../icons/" + this->piece_color + "_" + this->piece + "_" + this->field_color + extension;
+        filename = "://" + this->piece_color + "_" + this->piece + "_" + this->field_color + extension;
     } else {
-        filename = "../icons/" + this->field_color + extension;
+        filename = "://" + this->field_color + extension;
     }
     this->setIcon(QIcon(filename));
     this->setIconSize(this->size());

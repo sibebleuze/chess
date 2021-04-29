@@ -3,6 +3,7 @@
 #include <QScreen>
 
 int main(int argc, char *argv[]) {
+    Q_INIT_RESOURCE(qtres);
     QApplication app(argc, argv);
     MainWindow w;
     w.setMinimumSize(1000, 600);
