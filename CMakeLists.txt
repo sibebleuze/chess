@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 project(chess)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 
 set(QT_VERSION 5)
 set(REQUIRED_LIBS Core Gui Widgets Network)
@@ -27,7 +27,7 @@ add_executable(chess
         "chessboard/field.cpp"
         "icons/qtres.qrc"
         "nvwa-1.1/nvwa/debug_new.cpp") # catch some memory leaks
-# TODO: remove nvwa from final project
+# TODO: remove nvwa from final project, reset CMAKE_CXX_STANDARD to 17 (lowered to 14 for nvwa)
 
 target_link_libraries(chess ${REQUIRED_LIBS_QUALIFIED})
 add_custom_command(TARGET chess
