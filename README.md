@@ -15,4 +15,6 @@ To build from source, run the following commands from the chess directory:
 
 * unzip nvwa-1.1.zip
 * cmake .
-* make The executable should now be in the chess directory.
+* make
+
+The executable should now be in the chess directory.
