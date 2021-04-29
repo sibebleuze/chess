@@ -17,4 +17,6 @@ To build from source, run the following commands from the chess directory:
 * cmake .
 * make
 
-The executable should now be in the chess directory.
+The executable should now be in the chess directory. If any of the above steps fail due to Qt not being found, specify
+the correct CMAKE_PREFIX_PATH in CMakeLists.txt (where it says "C:/Qt/5.15.2/msvc2019" now).
+
