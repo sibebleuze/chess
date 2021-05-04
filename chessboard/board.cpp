@@ -2,11 +2,11 @@
 
 Board::Board(QWidget *mainwidget, int x_offset, int y_offset) {
     this->parent = mainwidget;
-    this->bottomleft = std::make_pair(x_offset, y_offset);
+    this->bottomleft = {x_offset, y_offset};
     for (int i = 0; i < 4; i++) {
         Field *g, *h;
-        g = new Field(mainwidget, 0, i, x_offset + 425 - 50 * i, y_offset - 100 - 50 * i);
-        h = new Field(mainwidget, 7, i, x_offset + 425 - 50 * i, y_offset + 250 - 50 * i);
+        g = new Field(mainwidget, 0, i, x_offset + (8.5 - i) * Field::side, y_offset - (i + 2) * Field::side);
+        h = new Field(mainwidget, 7, i, x_offset + (8.5 - i) * Field::side, y_offset + (5 - i) * Field::side);
         QObject::connect(g, &QPushButton::clicked, this, &Board::field_clicked);
         QObject::connect(h, &QPushButton::clicked, this, &Board::field_clicked);
         g->setVisible(false);
@@ -23,15 +23,25 @@ Board::Board(QWidget *mainwidget, int x_offset, int y_offset) {
             QLabel *q;
             q = new QLabel(mainwidget);
             q->setObjectName("column" + QString::number(2 * i + j));
-            q->setGeometry(QRect(this->bottomleft.first + 20 + 50 * (2 * i + j), this->bottomleft.second, 25, 25));
+            q->setGeometry(
+                    QRect(x_offset + 2 / 5.0 * Field::side + Field::side * (2 * i + j), y_offset, Field::side / 2,
+                          Field::side / 2));
             q->setText(Field::row_names()[2 * i + j]);
+            QFont c = q->font();
+            c.setPixelSize(Field::side / 3);
+            q->setFont(c);
             q->show();
             this->row_column_nametags.push_back(q);
             QLabel *r;
             r = new QLabel(mainwidget);
             r->setObjectName("row" + QString::number(2 * i + j));
-            r->setGeometry(QRect(this->bottomleft.first - 15, this->bottomleft.second - 35 - 50 * (2 * i + j), 25, 25));
+            r->setGeometry(QRect(x_offset - 3 / 10.0 * Field::side,
+                                 y_offset - 7 / 10.0 * Field::side - Field::side * (2 * i + j), Field::side / 2,
+                                 Field::side / 2));
             r->setText(QString::number(2 * i + j + 1));
+            QFont d = r->font();
+            d.setPixelSize(Field::side / 3);
+            r->setFont(d);
             r->show();
             this->row_column_nametags.push_back(r);
         }
@@ -112,14 +122,17 @@ void Board::field_clicked() {
             if (emitting->getPiece() == "pawn") { // take the en passant captured pawn off the board
                 std::vector<Field *> promoting_fields;
                 int opponent_pawn, last_row;
+                std::pair<int, int> two_forward;
                 if (emitting->getPieceColor() == "white") {
                     opponent_pawn = -1;
                     promoting_fields = this->white_promoting;
                     last_row = 7;
+                    two_forward = {3, 1};
                 } else {
                     opponent_pawn = 1;
                     promoting_fields = this->black_promoting;
                     last_row = 0;
+                    two_forward = {4, 6};
                 }
                 std::pair<int, int> p1 = emitting->getPosition();
                 if (this->en_passant_vulnerable ==
@@ -135,8 +148,8 @@ void Board::field_clicked() {
                     }
                 } else { // check if this pawn can be captured by en passant in the next turn
                     std::pair<int, int> p2 = this->last_clicked->getPosition();
-                    if ((p1.first == 3 && p2.first == 1) ||
-                        (p1.first == 4 && p2.first == 6)) { // if pawn moved two fields forward
+                    if (p1.first == two_forward.first &&
+                        p2.first == two_forward.second) { // if pawn moved two fields forward
                         this->en_passant_possible = true;
                         this->en_passant_vulnerable = emitting;
                     }
@@ -195,7 +208,7 @@ void Board::field_clicked() {
                 std::pair<int, int> king_position;
                 QString pc = emitting->getPieceColor();
                 if (emitting->getPiece() == "king") {
-                    king_position = std::make_pair(-1, -1);
+                    king_position = {-1, -1};
                 } else {
                     if (pc == "white") {
                         king_position = this->white_king_position;
@@ -223,10 +236,10 @@ void Board::field_clicked() {
                         }
                         if (!this->under_attack(king_pos, this->turn)) {
                             if (!king_moved) {
-                                std::pair<int, int> pos1 = std::make_pair(row, 3);
-                                std::pair<int, int> pos2 = std::make_pair(row, 2);
-                                std::pair<int, int> pos3 = std::make_pair(row, 5);
-                                std::pair<int, int> pos4 = std::make_pair(row, 6);
+                                std::pair<int, int> pos1 = {row, 3};
+                                std::pair<int, int> pos2 = {row, 2};
+                                std::pair<int, int> pos3 = {row, 5};
+                                std::pair<int, int> pos4 = {row, 6};
                                 // if the chosen move is left castling and the appropriate fields are not under attack
                                 if ((i->getPosition().second == pos2.second &&
                                      !(this->under_attack(pos1, this->turn) ||
@@ -333,10 +346,10 @@ std::vector<Field *> Board::getKingMoves(Field *invoking, std::pair<int, int> po
         row = 7;
     }
     if (!king_moved) {
-        std::pair<int, int> pos1 = std::make_pair(row, 3);
-        std::pair<int, int> pos2 = std::make_pair(row, 2);
-        std::pair<int, int> pos3 = std::make_pair(row, 5);
-        std::pair<int, int> pos4 = std::make_pair(row, 6);
+        std::pair<int, int> pos1 = {row, 3};
+        std::pair<int, int> pos2 = {row, 2};
+        std::pair<int, int> pos3 = {row, 5};
+        std::pair<int, int> pos4 = {row, 6};
         if (!rook_left_moved && (*this)[pos1]->getPiece() == "" && (*this)[pos2]->getPiece() == "") {
             Field *f = (*this)[pos2];
             possible_moves.push_back(f);
@@ -504,7 +517,7 @@ void Board::checkmate() {
                     std::pair<int, int> king_position;
                     QString pc = f->getPieceColor();
                     if (f->getPiece() == "king") {
-                        king_position = std::make_pair(-1, -1);
+                        king_position = {-1, -1};
                     } else {
                         if (pc == "white") {
                             king_position = this->white_king_position;

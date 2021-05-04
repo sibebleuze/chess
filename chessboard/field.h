@@ -29,6 +29,8 @@ public:
 
     static std::map<int, QString> row_names();
 
+    static int side;
+
 private:
     QString field_color;
     QString piece;
@@ -37,9 +39,6 @@ private:
     std::pair<int, int> position;
 
     bool selected = false;
-
-
-    static int side;
 
     static std::map<int, std::vector<QString>> field_colors();
 
