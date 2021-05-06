@@ -2,8 +2,9 @@
 #define CHESS_BOARD_H
 
 
-#include "line.h"
 #include <QLabel>
+#include <QTableWidget>
+#include "line.h"
 
 class Board : public QObject {
 public:
@@ -78,6 +79,8 @@ private:
 
 
     void checkmate();
+
+    QTableWidget *history;
 };
 
 
