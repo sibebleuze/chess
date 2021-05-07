@@ -43,10 +43,13 @@ void Move::execute(Field *destination,
                 two_forward = {4, 6};
             }
             std::pair<int, int> p1 = destination->getPosition();
-            if (b->en_passant_vulnerable ==
-                (*b)[std::make_pair(p1.first + opponent_pawn, p1.second)]) {
+            Field *epv = b->en_passant_vulnerable;
+            if (epv == (*b)[std::make_pair(p1.first + opponent_pawn, p1.second)] && epv->getPieceColor() != "") {
                 // take the en passant captured pawn off the board
-                b->en_passant_vulnerable->changeIcon("", "", b->en_passant_vulnerable->isSelected());
+                epv->changeIcon("", "", epv->isSelected());
+                // change the notation from a simple move to a capture + notation e.p. for en passant
+                QStringList l = rev_alg.split(" - ");
+                rev_alg = l[0] + " x " + l[1] + " e.p.";
             } else if (p1.first == last_row) {
                 // this else if for promoting might look a bit lost between the if and the else for en passant,
                 // but since these moves cannot possibly occur at the same time, it is ok for them to be here together
@@ -77,9 +80,11 @@ void Move::execute(Field *destination,
                 if (empos.second == 6) { // castling king-side
                     rook_from = (*b)[std::make_pair(empos.first, 7)];
                     rook_to = (*b)[std::make_pair(empos.first, 5)];
+                    rev_alg = "O-O";
                 } else { // castling queen-side
                     rook_from = (*b)[std::make_pair(empos.first, 0)];
                     rook_to = (*b)[std::make_pair(empos.first, 3)];
+                    rev_alg = "O-O-O";
                 }
                 rook_to->changeIcon(rook_from->getPiece(), rook_from->getPieceColor(), rook_to->isSelected());
                 rook_from->changeIcon("", "", rook_from->isSelected());
@@ -101,22 +106,25 @@ void Move::execute(Field *destination,
         if (b->turn == "white") {
             col = 0;
             b->turn_number += 1;
-            if (b->history->rowCount() < b->turn_number) {
-                b->history->insertRow(b->turn_number - 1);
-            }
+//            if (b->history->rowCount() < b->turn_number) {
+            b->history->insertRow(b->turn_number - 1);
+            b->history->resizeRowsToContents();
+//            }
             king_position = b->black_king_position;
         } else {
             col = 1;
             king_position = b->white_king_position;
         }
-        b->switch_turn(); // turn is switched here, everything below this uses the new turn color
-        if (b->result->isVisible()) {
-            rev_alg += "#";
-        } else if (b->under_attack(king_position, b->turn)) {
-            rev_alg += "+";
+        if (!b->promoting) {
+            b->switch_turn(); // turn is switched here, everything below this uses the new turn color
+            if (b->result->isVisible()) {
+                rev_alg += "#";
+            } else if (b->under_attack(king_position, b->turn)) {
+                rev_alg += "+";
+            }
         }
         auto *x = new QTableWidgetItem(rev_alg);
-        x->setTextAlignment(Qt::AlignHCenter);
+        x->setTextAlignment(Qt::AlignCenter);
         b->history->setItem(b->turn_number - 1, col, x);
         if (col == 0) {
             b->history->scrollToItem(x, QAbstractItemView::PositionAtBottom);

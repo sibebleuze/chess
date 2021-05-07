@@ -20,6 +20,10 @@ To build from source, run the following commands from the chess directory:
 The executable should now be in the chess directory. If any of the above steps fail due to Qt not being found, specify
 the correct CMAKE_PREFIX_PATH in CMakeLists.txt (where it says "C:/Qt/5.15.2/msvc2019" now).
 
+The program consists of a basic chess game, only clicking is supported to move the pieces around. On the right side of
+the screen next to the board is a live report of the moves played
+in [reversible algebraic notation](https://en.wikipedia.org/wiki/Chess_notation).
+
 This program has a few custom exit codes:
 
 * 80: an empty field somehow managed to get moves from the move calculator, since this is impossible, the game doesn't
@@ -29,5 +33,5 @@ This program has a few custom exit codes:
 * 82: the parameter that keeps track of whose turn it is, is empty, which is undefined behaviour, so any further
   unpredictable action is avoided by exiting
 
-These situation are all impossible to reach as far as I know, but who knows where I might have made a mistake. If any of
-the above situations occur, the program will exit. Please do let me know if this happens.
+These situations are all impossible to reach as far as I know, but who knows where I might have made a mistake. If any
+of the above situations occur, the program will exit. Please do let me know if this happens.

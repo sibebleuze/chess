@@ -4,6 +4,7 @@
 
 #include <QLabel>
 #include <QTableWidget>
+#include <QHeaderView>
 #include "line.h"
 #include "move.h"
 
@@ -27,7 +28,6 @@ public slots:
     void field_clicked();
 
 private:
-    QWidget *parent;
     QString turn = "white";
     int turn_number = 0;
 

@@ -1,12 +1,11 @@
-#include <iostream>
 #include "board.h"
 
 Board::Board(QWidget *mainwidget, int x_offset, int y_offset) {
-    this->parent = mainwidget;
+    QFont fnt;
     for (int i = 0; i < 4; i++) {
         Field *g, *h;
-        g = new Field(mainwidget, 0, i, int(x_offset + (8.5 - i) * Field::side), y_offset - (i + 2) * Field::side);
-        h = new Field(mainwidget, 7, i, int(x_offset + (8.5 - i) * Field::side), y_offset + (5 - i) * Field::side);
+        g = new Field(mainwidget, 0, i, x_offset + int((8.5 - i) * Field::side), y_offset - (i + 2) * Field::side);
+        h = new Field(mainwidget, 7, i, x_offset + int((8.5 - i) * Field::side), y_offset + (5 - i) * Field::side);
         QObject::connect(g, &QPushButton::clicked, this, &Board::field_clicked);
         QObject::connect(h, &QPushButton::clicked, this, &Board::field_clicked);
         g->setVisible(false);
@@ -20,41 +19,61 @@ Board::Board(QWidget *mainwidget, int x_offset, int y_offset) {
                 QObject::connect((*l)[k], &QPushButton::clicked, this, &Board::field_clicked);
             }
             this->lines.push_back(l);
-            QLabel *q;
+            QLabel *q, *r;
             q = new QLabel(mainwidget);
+            r = new QLabel(mainwidget);
             q->setObjectName("column" + QString::number(2 * i + j));
-            q->setGeometry(int(x_offset + 2 / 5.0 * Field::side + Field::side * (2 * i + j)), y_offset, Field::side / 2,
+            r->setObjectName("row" + QString::number(2 * i + j));
+            q->setGeometry(x_offset + int(2 / 5.0 * Field::side) + Field::side * (2 * i + j),
+                           y_offset,
+                           Field::side / 2,
+                           Field::side / 2);
+            r->setGeometry(x_offset - int(3 / 10.0 * Field::side),
+                           y_offset - int(7 / 10.0 * Field::side) - Field::side * (2 * i + j),
+                           Field::side / 2,
                            Field::side / 2);
             q->setText(Field::row_names()[2 * i + j]);
-            QFont c = q->font();
-            c.setPixelSize(Field::side / 3);
-            q->setFont(c);
-            q->show();
-            this->row_column_nametags.push_back(q);
-            QLabel *r;
-            r = new QLabel(mainwidget);
-            r->setObjectName("row" + QString::number(2 * i + j));
-            r->setGeometry(int(x_offset - 3 / 10.0 * Field::side),
-                           int(y_offset - 7 / 10.0 * Field::side - Field::side * (2 * i + j)), Field::side / 2,
-                           Field::side / 2);
             r->setText(QString::number(2 * i + j + 1));
-            QFont d = r->font();
-            d.setPixelSize(Field::side / 3);
-            r->setFont(d);
+            fnt = q->font();
+            fnt.setPixelSize(Field::side / 3);
+            q->setFont(fnt);
+            fnt = r->font();
+            fnt.setPixelSize(Field::side / 3);
+            r->setFont(fnt);
+            q->show();
             r->show();
+            this->row_column_nametags.push_back(q);
             this->row_column_nametags.push_back(r);
         }
     }
-    this->result = new QLabel(this->parent);
+    this->result = new QLabel(mainwidget);
     this->result->setObjectName(QString::fromUtf8("result"));
-    this->result->setGeometry(x_offset, y_offset + 30, 400, 30);
+    this->result->setGeometry(x_offset, y_offset + int(3 / 5.0 * Field::side), 8 * Field::side,
+                              int(3 / 5.0 * Field::side));
     this->result->hide();
-    this->history = new QTableWidget(10, 2, mainwidget);
+    this->history = new QTableWidget(1, 2, mainwidget);
     this->history->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     this->history->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->history->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    fnt = this->history->font();
+    fnt.setPixelSize(Field::side / 3);
+    this->history->setFont(fnt);
     this->history->setHorizontalHeaderLabels({"white", "black"});
-    this->history->setGeometry(600, 100, 300, 400);
+    for (int i = 0; i < 2; i++) {
+        QTableWidgetItem *hdr = this->history->horizontalHeaderItem(i);
+        fnt = this->history->font();
+        fnt.setPixelSize(Field::side / 3);
+        hdr->setFont(fnt);
+        this->history->setHorizontalHeaderItem(i, hdr);
+        this->history->setColumnWidth(i, int(2.5 * Field::side));
+    }
+    this->history->setGeometry(x_offset + 10 * Field::side, // next to the board at the right side
+                               y_offset - 8 * Field::side, // on the same height as the board
+                               23 + this->history->verticalHeader()->width() + 5 * Field::side,
+            // two columns, a vertical header, a vertical scrollbar (21px) and 2 extra px
+                               8 * Field::side); // same height as the board
+    this->history->setRowCount(
+            0); // 1 row needed for this->history->verticalHeader() to have the correct width, but game should start with zero rows
     this->history->show();
 }
 
@@ -107,10 +126,16 @@ void Board::field_clicked() {
     auto *emitting = (Field *) (QObject::sender());
     if (this->promoting) {
         std::vector<Field *> promoting_fields;
+        int col;
+        std::pair<int, int> king_position;
         if (emitting->getPieceColor() == "white") {
             promoting_fields = this->white_promoting;
+            col = 0;
+            king_position = this->black_king_position;
         } else if (emitting->getPieceColor() == "black") {
             promoting_fields = this->black_promoting;
+            col = 1;
+            king_position = this->white_king_position;
         } else {
             return; // this field is empty and is certainly not a field indicating what piece the player wants to promote to
         }
@@ -120,6 +145,14 @@ void Board::field_clicked() {
             this->promoting = false;
             for (auto f : promoting_fields) {
                 f->setVisible(false);
+            }
+            this->switch_turn(); // turn was explicitly not switched on move, but only here on piece selection
+            QTableWidgetItem *x = this->history->item(this->turn_number - 1, col);
+            x->setText(x->text() + Move::piece_to_letter()[emitting->getPiece()]);
+            if (this->result->isVisible()) {
+                x->setText(x->text() + "#");
+            } else if (this->under_attack(king_position, this->turn)) {
+                x->setText(x->text() + "+");
             }
         }
     } else if (!this->selected.empty()) {
@@ -147,8 +180,8 @@ void Board::field_clicked() {
                 }
                 if (!this->under_attack(king_position, pc, mv)) {
                     if (emitting->getPiece() == "king" &&
-                            std::abs(emitting->getPosition().second - i->getPosition().second) ==
-                            2) { // we need to check the remaining castling requirements here
+                        std::abs(emitting->getPosition().second - i->getPosition().second) ==
+                        2) { // we need to check the remaining castling requirements here
                         std::pair<int, int> king_pos;
                         bool king_moved;
                         int row;
@@ -169,12 +202,12 @@ void Board::field_clicked() {
                                 std::pair<int, int> pos4 = {row, 6};
                                 // if the chosen move is left castling and the appropriate fields are not under attack
                                 if ((i->getPosition().second == pos2.second &&
-                                        !(this->under_attack(pos1, this->turn) ||
-                                                this->under_attack(pos2, this->turn))) || // or
+                                     !(this->under_attack(pos1, this->turn) ||
+                                       this->under_attack(pos2, this->turn))) || // or
                                     // if the chosen move is right castling and the appropriate fields are not under attack
                                     (i->getPosition().second == pos4.second &&
-                                            !(this->under_attack(pos3, this->turn) ||
-                                                    this->under_attack(pos4, this->turn)))) {
+                                     !(this->under_attack(pos3, this->turn) ||
+                                       this->under_attack(pos4, this->turn)))) {
                                     possible_moves.push_back(i);
                                 }
                             }
@@ -197,7 +230,7 @@ void Board::field_clicked() {
 
 bool Board::on_board(std::pair<int, int> position, std::pair<int, int> increment) {
     return 0 <= position.first + increment.first && position.first + increment.first < 8 &&
-            0 <= position.second + increment.second && position.second + increment.second < 8;
+           0 <= position.second + increment.second && position.second + increment.second < 8;
 } // checks if a move increment from a certain position is still on the board or not
 
 std::vector<Field *>
@@ -386,7 +419,7 @@ bool Board::under_attack(std::pair<int, int> position, QString &color, std::vect
     Field *from, *to;
     std::pair<QString, QString> to_field; // needed to assure no piece get destroyed in this process
     if (!move.empty() &&
-            move.size() == 2) { // quick and dirty way to perform functions below on the field as if this move was made
+        move.size() == 2) { // quick and dirty way to perform functions below on the field as if this move was made
         from = move[0];
         to = move[1];
         to_field = std::make_pair(to->getPiece(), to->getPieceColor());
