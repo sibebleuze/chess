@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QTableWidget>
 #include "line.h"
+#include "move.h"
 
 class Board : public QObject {
 public:
@@ -27,6 +28,7 @@ public slots:
 private:
     QWidget *parent;
     QString turn = "white";
+    int turn_number = 0;
 
     std::pair<int, int> bottomleft;
     QLabel *result = nullptr; // needs to be initialised, because it will be deleted in the Board destructor
@@ -82,6 +84,5 @@ private:
 
     QTableWidget *history;
 };
-
 
 #endif //CHESS_BOARD_H

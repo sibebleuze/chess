@@ -121,13 +121,29 @@ void Board::field_clicked() {
         }
     } else if (!this->selected.empty()) {
         if (emitting->isSelected()) {
+            int col;
+            if (this->last_clicked->getPieceColor() == "white") {
+                col = 0;
+                this->turn_number += 1;
+                if (this->history->rowCount() < this->turn_number) {
+                    this->history->insertRow(this->turn_number - 1);
+                }
+            } else {
+                col = 1;
+            }
+            auto *x = new QTableWidgetItem(Move::reversible_algebraic(this->last_clicked, emitting));
+            x->setTextAlignment(Qt::AlignHCenter);
+            this->history->setItem(this->turn_number - 1, col, x);
+            if (col == 0) {
+                this->history->scrollToItem(x, QAbstractItemView::PositionAtBottom);
+            }
             // move the piece here
             emitting->changeIcon(this->last_clicked->getPiece(), this->last_clicked->getPieceColor(),
                                  emitting->isSelected());
             this->last_clicked->changeIcon("", "", this->last_clicked->isSelected());
             // selection status stays the same here, they all get deselected below
             // at this point the piece has moved, so actions where this->last_clicked was used before are now performed on emitting
-            if (emitting->getPiece() == "pawn") { // take the en passant captured pawn off the board
+            if (emitting->getPiece() == "pawn") {
                 std::vector<Field *> promoting_fields;
                 int opponent_pawn, last_row;
                 std::pair<int, int> two_forward;
@@ -145,6 +161,7 @@ void Board::field_clicked() {
                 std::pair<int, int> p1 = emitting->getPosition();
                 if (this->en_passant_vulnerable ==
                         (*this)[std::make_pair(p1.first + opponent_pawn, p1.second)]) {
+                    // take the en passant captured pawn off the board
                     this->en_passant_vulnerable->changeIcon("", "", this->en_passant_vulnerable->isSelected());
                 } else if (p1.first == last_row) {
                     // this else if for promoting might look a bit lost between the if and the else for en passant,

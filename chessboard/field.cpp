@@ -64,7 +64,7 @@ Field::Field(QWidget *mainwidget, int linenumber, int rownumber, int x_offset, i
     this->piece_color = Field::piece_colors()[linenumber];
     this->position = std::make_pair(linenumber, rownumber);
     this->setObjectName(
-            Field::row_names()[linenumber] + QString(rownumber + 1)); // e.g. 'a1' when linenumber = 0 and position = 0
+            Field::row_names()[rownumber] + QString(linenumber + 1)); // e.g. 'a1' when linenumber = 0 and rownumber = 0
     this->setGeometry(QRect(x_offset + Field::side * rownumber,
                             y_offset - Field::side * (linenumber +
                                                       1), // linenumber + 1, because otherwise (x_offset, y_offset) isn't the bottom left point of the board
