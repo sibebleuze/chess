@@ -105,11 +105,9 @@ void Move::execute(Field *destination,
         std::pair<int, int> king_position;
         if (b->turn == "white") {
             col = 0;
+            b->history->insertRow(b->turn_number);
             b->turn_number += 1;
-//            if (b->history->rowCount() < b->turn_number) {
-            b->history->insertRow(b->turn_number - 1);
             b->history->resizeRowsToContents();
-//            }
             king_position = b->black_king_position;
         } else {
             col = 1;
@@ -117,7 +115,7 @@ void Move::execute(Field *destination,
         }
         if (!b->promoting) {
             b->switch_turn(); // turn is switched here, everything below this uses the new turn color
-            if (b->result->isVisible()) {
+            if (b->result->isVisible() && b->result->text() != "Stalemate.") {
                 rev_alg += "#";
             } else if (b->under_attack(king_position, b->turn)) {
                 rev_alg += "+";

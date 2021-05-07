@@ -473,17 +473,29 @@ void Board::checkmate() {
         exit(EMPTY_TURN); // if it does happen the program should crash instead of exhibiting who knows what unpredictable behaviour
     }
     QString result_text;
+    QString result_notation;
     if (this->under_attack(king_position, this->turn)) { // king is in check with no moves left: checkmate
-        if (this->turn == "white") {
+        if (this->turn == "white") { // turn has switched already
             result_text = "Checkmate. Black wins.";
+            result_notation = "0 - 1";
         } else {
             result_text = "Checkmate. White wins.";
+            result_notation = "1 - 0";
         }
     } else { // no moves left but the king is not in check: stalemate
         result_text = "Stalemate.";
+        result_notation = "1/2 - 1/2";
     }
     this->result->setText(result_text);
     this->result->show();
+    QStringList l = result_notation.split(" - ");
+    this->history->insertRow(this->turn_number);
+    this->history->resizeRowsToContents();
+    for (int i = 0; i < 2; i++) {
+        auto *x = new QTableWidgetItem(l[i]);
+        x->setTextAlignment(Qt::AlignCenter);
+        this->history->setItem(this->turn_number, i, x);
+    }
 }
 
 void Board::promote() {
