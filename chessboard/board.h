@@ -31,9 +31,8 @@ public slots:
 
 private:
     QString turn = "white";
-    int turn_number = 0;
 
-    QLabel *result;
+    QLabel *game_end;
     std::vector<QLabel *> row_column_nametags;
 
     bool en_passant_possible = false;

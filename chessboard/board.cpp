@@ -46,11 +46,12 @@ Board::Board(QWidget *mainwidget, int x_offset, int y_offset) {
             this->row_column_nametags.push_back(r);
         }
     }
-    this->result = new QLabel(mainwidget);
-    this->result->setObjectName(QString::fromUtf8("result"));
-    this->result->setGeometry(x_offset, y_offset + int(3 / 5.0 * Field::side), 8 * Field::side,
-                              int(3 / 5.0 * Field::side));
-    this->result->hide();
+    this->game_end = new QLabel(mainwidget);
+    this->game_end->setObjectName(QString::fromUtf8("result"));
+    this->game_end->setGeometry(x_offset, y_offset + int(3 / 5.0 * Field::side), 8 * Field::side,
+                                int(3 / 5.0 * Field::side));
+    this->game_end->setText("Game over. Close the program and restart it to start a new game.");
+    this->game_end->hide();
     this->history = new QTableWidget(1, 2, mainwidget);
     this->history->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     this->history->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -61,7 +62,7 @@ Board::Board(QWidget *mainwidget, int x_offset, int y_offset) {
     this->history->setHorizontalHeaderLabels({"white", "black"});
     for (int i = 0; i < 2; i++) {
         QTableWidgetItem *hdr = this->history->horizontalHeaderItem(i);
-        fnt = this->history->font();
+        fnt = hdr->font();
         fnt.setPixelSize(Field::side / 3);
         hdr->setFont(fnt);
         this->history->setHorizontalHeaderItem(i, hdr);
@@ -72,8 +73,8 @@ Board::Board(QWidget *mainwidget, int x_offset, int y_offset) {
                                23 + this->history->verticalHeader()->width() + 5 * Field::side,
             // two columns, a vertical header, a vertical scrollbar (21px) and 2 extra px
                                8 * Field::side); // same height as the board
-    this->history->setRowCount(
-            0); // 1 row needed for this->history->verticalHeader() to have the correct width, but game should start with zero rows
+    // 1 row needed for this->history->verticalHeader() to have the correct width, but game should start with zero rows
+    this->history->setRowCount(0);
     this->history->show();
 }
 
@@ -95,7 +96,7 @@ Board::~Board() {
             }
         }
     }
-    delete this->result;
+    delete this->game_end;
     delete this->history;
 }
 
@@ -472,29 +473,24 @@ void Board::checkmate() {
     } else { // this would mean an empty field has possible moves, this should not ever be possible
         exit(EMPTY_TURN); // if it does happen the program should crash instead of exhibiting who knows what unpredictable behaviour
     }
-    QString result_text;
     QString result_notation;
     if (this->under_attack(king_position, this->turn)) { // king is in check with no moves left: checkmate
         if (this->turn == "white") { // turn has switched already
-            result_text = "Checkmate. Black wins.";
             result_notation = "0 - 1";
         } else {
-            result_text = "Checkmate. White wins.";
             result_notation = "1 - 0";
         }
     } else { // no moves left but the king is not in check: stalemate
-        result_text = "Stalemate.";
         result_notation = "1/2 - 1/2";
     }
-    this->result->setText(result_text);
-    this->result->show();
+    this->game_end->show();
     QStringList l = result_notation.split(" - ");
-    this->history->insertRow(this->turn_number);
+    this->history->insertRow(this->history->rowCount());
     this->history->resizeRowsToContents();
     for (int i = 0; i < 2; i++) {
         auto *x = new QTableWidgetItem(l[i]);
         x->setTextAlignment(Qt::AlignCenter);
-        this->history->setItem(this->turn_number, i, x);
+        this->history->setItem(this->history->rowCount() - 1, i, x);
     }
 }
 
@@ -521,9 +517,9 @@ void Board::promote() {
             f->setVisible(false);
         }
         this->switch_turn(); // turn was explicitly not switched on move, but only here on piece selection
-        QTableWidgetItem *x = this->history->item(this->turn_number - 1, col);
+        QTableWidgetItem *x = this->history->item(this->history->rowCount() - 1, col);
         x->setText(x->text() + Move::piece_to_letter()[emitting->getPiece()]);
-        if (this->result->isVisible()) {
+        if (this->game_end->isVisible()) {
             x->setText(x->text() + "#");
         } else if (this->under_attack(king_position, this->turn)) {
             x->setText(x->text() + "+");

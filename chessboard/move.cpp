@@ -103,30 +103,37 @@ void Move::execute(Field *destination,
         }
         int col;
         std::pair<int, int> king_position;
+        QTableWidgetItem *x;
         if (b->turn == "white") {
             col = 0;
-            b->history->insertRow(b->turn_number);
-            b->turn_number += 1;
-            b->history->resizeRowsToContents();
             king_position = b->black_king_position;
+            b->history->insertRow(b->history->rowCount());
+            b->history->resizeRowsToContents();
+            for (int i = 1; i >= 0; i--) {
+                x = new QTableWidgetItem(" ");
+                x->setTextAlignment(Qt::AlignCenter);
+                b->history->setItem(b->history->rowCount() - 1, i, x);
+            }
+            b->history->scrollToItem(x, QAbstractItemView::PositionAtBottom);
         } else {
             col = 1;
             king_position = b->white_king_position;
         }
         if (!b->promoting) {
             b->switch_turn(); // turn is switched here, everything below this uses the new turn color
-            if (b->result->isVisible() && b->result->text() != "Stalemate.") {
+            if (b->game_end->isVisible() && b->history->item(b->history->rowCount() - 1, 0)->text() != "1/2") {
                 rev_alg += "#";
             } else if (b->under_attack(king_position, b->turn)) {
                 rev_alg += "+";
             }
         }
-        auto *x = new QTableWidgetItem(rev_alg);
-        x->setTextAlignment(Qt::AlignCenter);
-        b->history->setItem(b->turn_number - 1, col, x);
-        if (col == 0) {
-            b->history->scrollToItem(x, QAbstractItemView::PositionAtBottom);
+        int m = 0;
+        x = b->history->item(b->history->rowCount() - 1, col);
+        if (x->text() != " ") {
+            m += 1;
         }
+        x = b->history->item(b->history->rowCount() - 1 - m, col);
+        x->setText(rev_alg);
     }
     for (auto i : b->selected) { // deselect everything
         i->changeSelection(); // keeping a list of selected fields is faster than going over all fields to see if they are selected or not
