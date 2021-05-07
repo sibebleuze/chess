@@ -3,7 +3,6 @@
 
 Board::Board(QWidget *mainwidget, int x_offset, int y_offset) {
     this->parent = mainwidget;
-    this->bottomleft = {x_offset, y_offset};
     for (int i = 0; i < 4; i++) {
         Field *g, *h;
         g = new Field(mainwidget, 0, i, int(x_offset + (8.5 - i) * Field::side), y_offset - (i + 2) * Field::side);
@@ -24,9 +23,8 @@ Board::Board(QWidget *mainwidget, int x_offset, int y_offset) {
             QLabel *q;
             q = new QLabel(mainwidget);
             q->setObjectName("column" + QString::number(2 * i + j));
-            q->setGeometry(
-                    QRect(int(x_offset + 2 / 5.0 * Field::side + Field::side * (2 * i + j)), y_offset, Field::side / 2,
-                          Field::side / 2));
+            q->setGeometry(int(x_offset + 2 / 5.0 * Field::side + Field::side * (2 * i + j)), y_offset, Field::side / 2,
+                           Field::side / 2);
             q->setText(Field::row_names()[2 * i + j]);
             QFont c = q->font();
             c.setPixelSize(Field::side / 3);
@@ -36,9 +34,9 @@ Board::Board(QWidget *mainwidget, int x_offset, int y_offset) {
             QLabel *r;
             r = new QLabel(mainwidget);
             r->setObjectName("row" + QString::number(2 * i + j));
-            r->setGeometry(QRect(int(x_offset - 3 / 10.0 * Field::side),
-                                 int(y_offset - 7 / 10.0 * Field::side - Field::side * (2 * i + j)), Field::side / 2,
-                                 Field::side / 2));
+            r->setGeometry(int(x_offset - 3 / 10.0 * Field::side),
+                           int(y_offset - 7 / 10.0 * Field::side - Field::side * (2 * i + j)), Field::side / 2,
+                           Field::side / 2);
             r->setText(QString::number(2 * i + j + 1));
             QFont d = r->font();
             d.setPixelSize(Field::side / 3);
@@ -47,17 +45,20 @@ Board::Board(QWidget *mainwidget, int x_offset, int y_offset) {
             this->row_column_nametags.push_back(r);
         }
     }
+    this->result = new QLabel(this->parent);
+    this->result->setObjectName(QString::fromUtf8("result"));
+    this->result->setGeometry(x_offset, y_offset + 30, 400, 30);
+    this->result->hide();
     this->history = new QTableWidget(10, 2, mainwidget);
     this->history->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     this->history->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->history->setEditTriggers(QAbstractItemView::NoEditTriggers);
     this->history->setHorizontalHeaderLabels({"white", "black"});
     this->history->setGeometry(600, 100, 300, 400);
+    this->history->show();
 }
 
 Board::~Board() {
-    delete this->result;
-    delete this->history;
     for (int i = 0; i < 4; i++) {
         // these first two vectors have a length of 4
         delete this->white_promoting.back();
@@ -75,6 +76,8 @@ Board::~Board() {
             }
         }
     }
+    delete this->result;
+    delete this->history;
 }
 
 std::map<QString, int> Board::row_numbers() {
@@ -120,108 +123,7 @@ void Board::field_clicked() {
             }
         }
     } else if (!this->selected.empty()) {
-        if (emitting->isSelected()) {
-            int col;
-            if (this->last_clicked->getPieceColor() == "white") {
-                col = 0;
-                this->turn_number += 1;
-                if (this->history->rowCount() < this->turn_number) {
-                    this->history->insertRow(this->turn_number - 1);
-                }
-            } else {
-                col = 1;
-            }
-            auto *x = new QTableWidgetItem(Move::reversible_algebraic(this->last_clicked, emitting));
-            x->setTextAlignment(Qt::AlignHCenter);
-            this->history->setItem(this->turn_number - 1, col, x);
-            if (col == 0) {
-                this->history->scrollToItem(x, QAbstractItemView::PositionAtBottom);
-            }
-            // move the piece here
-            emitting->changeIcon(this->last_clicked->getPiece(), this->last_clicked->getPieceColor(),
-                                 emitting->isSelected());
-            this->last_clicked->changeIcon("", "", this->last_clicked->isSelected());
-            // selection status stays the same here, they all get deselected below
-            // at this point the piece has moved, so actions where this->last_clicked was used before are now performed on emitting
-            if (emitting->getPiece() == "pawn") {
-                std::vector<Field *> promoting_fields;
-                int opponent_pawn, last_row;
-                std::pair<int, int> two_forward;
-                if (emitting->getPieceColor() == "white") {
-                    opponent_pawn = -1;
-                    promoting_fields = this->white_promoting;
-                    last_row = 7;
-                    two_forward = {3, 1};
-                } else {
-                    opponent_pawn = 1;
-                    promoting_fields = this->black_promoting;
-                    last_row = 0;
-                    two_forward = {4, 6};
-                }
-                std::pair<int, int> p1 = emitting->getPosition();
-                if (this->en_passant_vulnerable ==
-                        (*this)[std::make_pair(p1.first + opponent_pawn, p1.second)]) {
-                    // take the en passant captured pawn off the board
-                    this->en_passant_vulnerable->changeIcon("", "", this->en_passant_vulnerable->isSelected());
-                } else if (p1.first == last_row) {
-                    // this else if for promoting might look a bit lost between the if and the else for en passant,
-                    // but since these moves cannot possibly occur at the same time, it is ok for them to be here together
-                    this->promoting = true;
-                    this->promoting_field = emitting;
-                    for (auto f : promoting_fields) {
-                        f->setVisible(true);
-                    }
-                } else { // check if this pawn can be captured by en passant in the next turn
-                    std::pair<int, int> p2 = this->last_clicked->getPosition();
-                    if (p1.first == two_forward.first &&
-                            p2.first == two_forward.second) { // if pawn moved two fields forward
-                        this->en_passant_possible = true;
-                        this->en_passant_vulnerable = emitting;
-                    }
-                }
-            } else if (emitting->getPiece() == "king") {
-                if (emitting->getPieceColor() == "white") {
-                    this->white_king_position = emitting->getPosition(); // we need to keep track of the king position for checking if it is in check
-                    this->white_king_moved = true; // we need to keep track of the king movement for the castling requirements
-                } else {
-                    this->black_king_position = emitting->getPosition(); // we need to keep track of the king position for checking if it is in check
-                    this->black_king_moved = true; // we need to keep track of the king movement for the castling requirements
-                }
-                std::pair<int, int> empos = emitting->getPosition();
-                if (std::abs(this->last_clicked->getPosition().second - empos.second) == 2) {
-                    Field *rook_from, *rook_to;
-                    if (empos.second == 6) { // castling king-side
-                        rook_from = (*this)[std::make_pair(empos.first, 7)];
-                        rook_to = (*this)[std::make_pair(empos.first, 5)];
-                    } else { // castling queen-side
-                        rook_from = (*this)[std::make_pair(empos.first, 0)];
-                        rook_to = (*this)[std::make_pair(empos.first, 3)];
-                    }
-                    rook_to->changeIcon(rook_from->getPiece(), rook_from->getPieceColor(), rook_to->isSelected());
-                    rook_from->changeIcon("", "", rook_from->isSelected());
-                }
-            } else if (emitting->getPiece() ==
-                    "rook") { // we need to keep track of the rook movement for the castling requirements
-                if (this->last_clicked->getPosition() == std::make_pair(0, 0)) {
-                    this->white_rook_left_moved = true;
-                } else if (this->last_clicked->getPosition() == std::make_pair(0, 7)) {
-                    this->white_rook_right_moved = true;
-                } else if (this->last_clicked->getPosition() == std::make_pair(7, 0)) {
-                    this->black_rook_left_moved = true;
-                } else if (this->last_clicked->getPosition() == std::make_pair(7, 7)) {
-                    this->black_rook_right_moved = true;
-                }
-            }
-            this->switch_turn();
-        }
-        for (auto i : this->selected) { // deselect everything
-            i->changeSelection(); // keeping a list of selected fields is faster than going over all fields to see if they are selected or not
-        }
-        this->selected.clear();
-        if (this->en_passant_possible && this->en_passant_vulnerable->getPieceColor() ==
-                                                 this->turn) { // only the second check is really necessary, but the first makes sure that this->en_passant_vulnerable exists
-            this->en_passant_possible = false; // this can only be true for the duration of one turn, so after one move it is set to false
-        }
+        Move::execute(emitting, this);
     } else {
         if (emitting->getPieceColor() == this->turn) {
             std::vector<Field *> all_moves = this->get_field_moves(emitting);
@@ -581,9 +483,6 @@ void Board::checkmate() {
     } else { // no moves left but the king is not in check: stalemate
         result_text = "Stalemate.";
     }
-    this->result = new QLabel(this->parent);
-    this->result->setObjectName(QString::fromUtf8("result"));
-    this->result->setGeometry(QRect(this->bottomleft.first, this->bottomleft.second + 30, 400, 30));
     this->result->setText(result_text);
     this->result->show();
 }

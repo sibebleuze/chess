@@ -16,16 +16,123 @@ QString Move::reversible_algebraic(Field *origin,
     return rev_alg;
 }
 
-QString Move::execute(Field *origin,
-                      Field *destination) { // executes move from origin to destination field and returns reversible algebraic notation of it
-    QString rev_alg = Move::reversible_algebraic(origin, destination);
-    // move the piece here
-    destination->changeIcon(origin->getPiece(), origin->getPieceColor(), destination->isSelected());
-    origin->changeIcon("", "", origin->isSelected());
-    return rev_alg;
+void Move::execute(Field *destination,
+                   Board *b) { // executes move from last field clicked on board to destination field and fills in history table with correct move
+    if (destination->isSelected()) {
+        Field *origin = b->last_clicked;
+        QString rev_alg = Move::reversible_algebraic(origin, destination);
+        // move the piece here
+        destination->changeIcon(origin->getPiece(), origin->getPieceColor(),
+                                destination->isSelected());
+        origin->changeIcon("", "", origin->isSelected());
+        // selection status stays the same here, they all get deselected below
+        // at this point the piece has moved, so actions where origin was used before are now performed on destination
+        if (destination->getPiece() == "pawn") {
+            std::vector<Field *> promoting_fields;
+            int opponent_pawn, last_row;
+            std::pair<int, int> two_forward;
+            if (destination->getPieceColor() == "white") {
+                opponent_pawn = -1;
+                promoting_fields = b->white_promoting;
+                last_row = 7;
+                two_forward = {3, 1};
+            } else {
+                opponent_pawn = 1;
+                promoting_fields = b->black_promoting;
+                last_row = 0;
+                two_forward = {4, 6};
+            }
+            std::pair<int, int> p1 = destination->getPosition();
+            if (b->en_passant_vulnerable ==
+                (*b)[std::make_pair(p1.first + opponent_pawn, p1.second)]) {
+                // take the en passant captured pawn off the board
+                b->en_passant_vulnerable->changeIcon("", "", b->en_passant_vulnerable->isSelected());
+            } else if (p1.first == last_row) {
+                // this else if for promoting might look a bit lost between the if and the else for en passant,
+                // but since these moves cannot possibly occur at the same time, it is ok for them to be here together
+                b->promoting = true;
+                b->promoting_field = destination;
+                for (auto f : promoting_fields) {
+                    f->setVisible(true);
+                }
+            } else { // check if this pawn can be captured by en passant in the next turn
+                std::pair<int, int> p2 = origin->getPosition();
+                if (p1.first == two_forward.first &&
+                    p2.first == two_forward.second) { // if pawn moved two fields forward
+                    b->en_passant_possible = true;
+                    b->en_passant_vulnerable = destination;
+                }
+            }
+        } else if (destination->getPiece() == "king") {
+            if (destination->getPieceColor() == "white") {
+                b->white_king_position = destination->getPosition(); // we need to keep track of the king position for checking if it is in check
+                b->white_king_moved = true; // we need to keep track of the king movement for the castling requirements
+            } else {
+                b->black_king_position = destination->getPosition(); // we need to keep track of the king position for checking if it is in check
+                b->black_king_moved = true; // we need to keep track of the king movement for the castling requirements
+            }
+            std::pair<int, int> empos = destination->getPosition();
+            if (std::abs(origin->getPosition().second - empos.second) == 2) {
+                Field *rook_from, *rook_to;
+                if (empos.second == 6) { // castling king-side
+                    rook_from = (*b)[std::make_pair(empos.first, 7)];
+                    rook_to = (*b)[std::make_pair(empos.first, 5)];
+                } else { // castling queen-side
+                    rook_from = (*b)[std::make_pair(empos.first, 0)];
+                    rook_to = (*b)[std::make_pair(empos.first, 3)];
+                }
+                rook_to->changeIcon(rook_from->getPiece(), rook_from->getPieceColor(), rook_to->isSelected());
+                rook_from->changeIcon("", "", rook_from->isSelected());
+            }
+        } else if (destination->getPiece() ==
+                   "rook") { // we need to keep track of the rook movement for the castling requirements
+            if (origin->getPosition() == std::make_pair(0, 0)) {
+                b->white_rook_left_moved = true;
+            } else if (origin->getPosition() == std::make_pair(0, 7)) {
+                b->white_rook_right_moved = true;
+            } else if (origin->getPosition() == std::make_pair(7, 0)) {
+                b->black_rook_left_moved = true;
+            } else if (origin->getPosition() == std::make_pair(7, 7)) {
+                b->black_rook_right_moved = true;
+            }
+        }
+        int col;
+        std::pair<int, int> king_position;
+        if (b->turn == "white") {
+            col = 0;
+            b->turn_number += 1;
+            if (b->history->rowCount() < b->turn_number) {
+                b->history->insertRow(b->turn_number - 1);
+            }
+            king_position = b->black_king_position;
+        } else {
+            col = 1;
+            king_position = b->white_king_position;
+        }
+        b->switch_turn(); // turn is switched here, everything below this uses the new turn color
+        if (b->result->isVisible()) {
+            rev_alg += "#";
+        } else if (b->under_attack(king_position, b->turn)) {
+            rev_alg += "+";
+        }
+        auto *x = new QTableWidgetItem(rev_alg);
+        x->setTextAlignment(Qt::AlignHCenter);
+        b->history->setItem(b->turn_number - 1, col, x);
+        if (col == 0) {
+            b->history->scrollToItem(x, QAbstractItemView::PositionAtBottom);
+        }
+    }
+    for (auto i : b->selected) { // deselect everything
+        i->changeSelection(); // keeping a list of selected fields is faster than going over all fields to see if they are selected or not
+    }
+    b->selected.clear();
+    if (b->en_passant_possible && b->en_passant_vulnerable->getPieceColor() ==
+                                  b->turn) { // only the second check is really necessary, but the first makes sure that this->en_passant_vulnerable exists
+        b->en_passant_possible = false; // this can only be true for the duration of one turn, so after one move it is set to false
+    }
 }
 
-void Move::revert(QString rev_alg) {
+void Move::revert(const QString &rev_alg) {
     QStringList l = rev_alg.split(" - ");
 }
 

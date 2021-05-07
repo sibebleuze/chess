@@ -8,6 +8,7 @@
 #include "move.h"
 
 class Board : public QObject {
+    friend class Move;
 public:
     // justification of use of explicit: Clang-Tidy: Constructors that are callable with a single argument must be marked explicit to avoid unintentional implicit conversions
     explicit Board(QWidget *mainwidget, int x_offset = 100, int y_offset = 500);
@@ -30,12 +31,11 @@ private:
     QString turn = "white";
     int turn_number = 0;
 
-    std::pair<int, int> bottomleft;
-    QLabel *result = nullptr; // needs to be initialised, because it will be deleted in the Board destructor
+    QLabel *result;
     std::vector<QLabel *> row_column_nametags;
 
     bool en_passant_possible = false;
-    // these don't need to be explicitly deleted in the Board destructor, they are one of the fields on the board so they are deleted through the Line destructor
+    // these are not necessarily used and are thus not initialised in the constructor, nor deleted in the destructor
     Field *en_passant_vulnerable = nullptr;
     Field *last_clicked = nullptr;
 
