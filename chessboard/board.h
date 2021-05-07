@@ -27,6 +27,8 @@ public slots:
 
     void field_clicked();
 
+    void promote();
+
 private:
     QString turn = "white";
     int turn_number = 0;

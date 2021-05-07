@@ -6,8 +6,8 @@ Board::Board(QWidget *mainwidget, int x_offset, int y_offset) {
         Field *g, *h;
         g = new Field(mainwidget, 0, i, x_offset + int((8.5 - i) * Field::side), y_offset - (i + 2) * Field::side);
         h = new Field(mainwidget, 7, i, x_offset + int((8.5 - i) * Field::side), y_offset + (5 - i) * Field::side);
-        QObject::connect(g, &QPushButton::clicked, this, &Board::field_clicked);
-        QObject::connect(h, &QPushButton::clicked, this, &Board::field_clicked);
+        QObject::connect(g, &QPushButton::clicked, this, &Board::promote);
+        QObject::connect(h, &QPushButton::clicked, this, &Board::promote);
         g->setVisible(false);
         h->setVisible(false);
         this->white_promoting.push_back(g);
@@ -125,36 +125,7 @@ void Board::field_clicked() {
     // the sender will always be a Field, and since we need to apply Field methods to it, it needs to be cast to a Field here
     auto *emitting = (Field *) (QObject::sender());
     if (this->promoting) {
-        std::vector<Field *> promoting_fields;
-        int col;
-        std::pair<int, int> king_position;
-        if (emitting->getPieceColor() == "white") {
-            promoting_fields = this->white_promoting;
-            col = 0;
-            king_position = this->black_king_position;
-        } else if (emitting->getPieceColor() == "black") {
-            promoting_fields = this->black_promoting;
-            col = 1;
-            king_position = this->white_king_position;
-        } else {
-            return; // this field is empty and is certainly not a field indicating what piece the player wants to promote to
-        }
-        if (std::find(promoting_fields.begin(), promoting_fields.end(), emitting) != promoting_fields.end()) {
-            this->promoting_field->changeIcon(emitting->getPiece(), emitting->getPieceColor(),
-                                              this->promoting_field->isSelected());
-            this->promoting = false;
-            for (auto f : promoting_fields) {
-                f->setVisible(false);
-            }
-            this->switch_turn(); // turn was explicitly not switched on move, but only here on piece selection
-            QTableWidgetItem *x = this->history->item(this->turn_number - 1, col);
-            x->setText(x->text() + Move::piece_to_letter()[emitting->getPiece()]);
-            if (this->result->isVisible()) {
-                x->setText(x->text() + "#");
-            } else if (this->under_attack(king_position, this->turn)) {
-                x->setText(x->text() + "+");
-            }
-        }
+        return; // while promoting, no other field can be interacted with
     } else if (!this->selected.empty()) {
         Move::execute(emitting, this);
     } else {
@@ -200,11 +171,12 @@ void Board::field_clicked() {
                                 std::pair<int, int> pos2 = {row, 2};
                                 std::pair<int, int> pos3 = {row, 5};
                                 std::pair<int, int> pos4 = {row, 6};
-                                // if the chosen move is left castling and the appropriate fields are not under attack
                                 if ((i->getPosition().second == pos2.second &&
                                      !(this->under_attack(pos1, this->turn) ||
-                                       this->under_attack(pos2, this->turn))) || // or
-                                    // if the chosen move is right castling and the appropriate fields are not under attack
+                                       this->under_attack(pos2, this->turn)))
+                                    // if the chosen move is queen side castling and the appropriate fields are not under attack
+                                    || // or
+                                    // if the chosen move is king side castling and the appropriate fields are not under attack
                                     (i->getPosition().second == pos4.second &&
                                      !(this->under_attack(pos3, this->turn) ||
                                        this->under_attack(pos4, this->turn)))) {
@@ -221,9 +193,7 @@ void Board::field_clicked() {
                 i->changeSelection();
                 this->selected.push_back(i);
             }
-            if (!possible_moves.empty()) {
-                this->last_clicked = emitting;
-            }
+            this->last_clicked = emitting;
         }
     }
 }
@@ -518,4 +488,37 @@ void Board::checkmate() {
     }
     this->result->setText(result_text);
     this->result->show();
+}
+
+void Board::promote() {
+    // the sender will always be a Field, and since we need to apply Field methods to it, it needs to be cast to a Field here
+    auto *emitting = (Field *) (QObject::sender());
+    std::vector<Field *> promoting_fields;
+    int col;
+    std::pair<int, int> king_position;
+    if (this->turn == "white") {
+        promoting_fields = this->white_promoting;
+        col = 0;
+        king_position = this->black_king_position;
+    } else {
+        promoting_fields = this->black_promoting;
+        col = 1;
+        king_position = this->white_king_position;
+    }
+    if (std::find(promoting_fields.begin(), promoting_fields.end(), emitting) != promoting_fields.end()) {
+        this->promoting_field->changeIcon(emitting->getPiece(), emitting->getPieceColor(),
+                                          this->promoting_field->isSelected());
+        this->promoting = false;
+        for (auto f : promoting_fields) {
+            f->setVisible(false);
+        }
+        this->switch_turn(); // turn was explicitly not switched on move, but only here on piece selection
+        QTableWidgetItem *x = this->history->item(this->turn_number - 1, col);
+        x->setText(x->text() + Move::piece_to_letter()[emitting->getPiece()]);
+        if (this->result->isVisible()) {
+            x->setText(x->text() + "#");
+        } else if (this->under_attack(king_position, this->turn)) {
+            x->setText(x->text() + "+");
+        }
+    }
 }
