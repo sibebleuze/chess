@@ -128,73 +128,69 @@ void Board::field_clicked() {
         return; // while promoting, no other field can be interacted with
     } else if (!this->selected.empty()) {
         Move::execute(emitting, this);
-    } else {
-        if (emitting->getPieceColor() == this->turn) {
-            std::vector<Field *> all_moves = this->get_field_moves(emitting);
-            std::vector<Field *> possible_moves;
-            for (auto i : all_moves) {
-                std::vector<Field *> mv;
-                mv.push_back(emitting);
-                mv.push_back(i);
-                std::pair<int, int> king_position;
-                QString pc = emitting->getPieceColor();
-                if (emitting->getPiece() == "king") {
-                    king_position = {-1, -1};
-                } else {
-                    if (pc == "white") {
-                        king_position = this->white_king_position;
-                    } else if (pc == "black") {
-                        king_position = this->black_king_position;
-                    } else { // this would mean an empty field has possible moves, this should not ever be possible
-                        exit(EMPTY_FIELD_MOVE); // if it does happen the program should crash instead of exhibiting who knows what unpredictable behaviour
-                    }
+    } else if (emitting->getPieceColor() == this->turn) { // select all possible moves for this field
+        std::vector<Field *> all_moves = this->get_field_moves(emitting);
+        std::vector<Field *> possible_moves;
+        for (auto i : all_moves) {
+            std::vector<Field *> mv;
+            mv.push_back(emitting);
+            mv.push_back(i);
+            std::pair<int, int> king_position;
+            QString pc = emitting->getPieceColor();
+            if (emitting->getPiece() == "king") {
+                king_position = {-1, -1};
+            } else {
+                if (pc == "white") {
+                    king_position = this->white_king_position;
+                } else if (pc == "black") {
+                    king_position = this->black_king_position;
+                } else { // this would mean an empty field has possible moves, this should not ever be possible
+                    exit(EMPTY_FIELD_MOVE); // if it does happen the program should crash instead of exhibiting who knows what unpredictable behaviour
                 }
-                if (!this->under_attack(king_position, pc, mv)) {
-                    if (emitting->getPiece() == "king" &&
-                        std::abs(emitting->getPosition().second - i->getPosition().second) ==
-                        2) { // we need to check the remaining castling requirements here
-                        std::pair<int, int> king_pos;
-                        bool king_moved;
-                        int row;
-                        if (this->turn == "white") {
-                            king_pos = this->white_king_position;
-                            king_moved = this->white_king_moved;
-                            row = 0;
-                        } else {
-                            king_pos = this->black_king_position;
-                            king_moved = this->black_king_moved;
-                            row = 7;
-                        }
-                        if (!this->under_attack(king_pos, this->turn)) {
-                            if (!king_moved) {
-                                std::pair<int, int> pos1 = {row, 3};
-                                std::pair<int, int> pos2 = {row, 2};
-                                std::pair<int, int> pos3 = {row, 5};
-                                std::pair<int, int> pos4 = {row, 6};
-                                if ((i->getPosition().second == pos2.second &&
-                                     !(this->under_attack(pos1, this->turn) ||
-                                       this->under_attack(pos2, this->turn)))
-                                    // if the chosen move is queen side castling and the appropriate fields are not under attack
-                                    || // or
-                                    // if the chosen move is king side castling and the appropriate fields are not under attack
-                                    (i->getPosition().second == pos4.second &&
-                                     !(this->under_attack(pos3, this->turn) ||
-                                       this->under_attack(pos4, this->turn)))) {
-                                    possible_moves.push_back(i);
-                                }
+            }
+            if (!this->under_attack(king_position, pc, mv)) {
+                if (emitting->getPiece() == "king" &&
+                    std::abs(emitting->getPosition().second - i->getPosition().second) ==
+                    2) { // we need to check the remaining castling requirements here
+                    std::pair<int, int> king_pos;
+                    bool king_moved;
+                    int row;
+                    if (this->turn == "white") {
+                        king_pos = this->white_king_position;
+                        king_moved = this->white_king_moved;
+                        row = 0;
+                    } else {
+                        king_pos = this->black_king_position;
+                        king_moved = this->black_king_moved;
+                        row = 7;
+                    }
+                    if (!this->under_attack(king_pos, this->turn)) {
+                        if (!king_moved) {
+                            std::pair<int, int> pos1 = {row, 3};
+                            std::pair<int, int> pos2 = {row, 2};
+                            std::pair<int, int> pos3 = {row, 5};
+                            std::pair<int, int> pos4 = {row, 6};
+                            if ((i->getPosition().second == pos2.second &&
+                                 !(this->under_attack(pos1, this->turn) || this->under_attack(pos2, this->turn)))
+                                // if the chosen move is queen side castling and the appropriate fields are not under attack
+                                || // or
+                                // if the chosen move is king side castling and the appropriate fields are not under attack
+                                (i->getPosition().second == pos4.second &&
+                                 !(this->under_attack(pos3, this->turn) || this->under_attack(pos4, this->turn)))) {
+                                possible_moves.push_back(i);
                             }
                         }
-                    } else { // if the king is not castling (or another piece entirely is moving), the checks that happened before this suffice
-                        possible_moves.push_back(i);
                     }
+                } else { // if the king is not castling (or another piece entirely is moving), the checks that happened before this suffice
+                    possible_moves.push_back(i);
                 }
             }
-            for (auto i : possible_moves) {
-                i->changeSelection();
-                this->selected.push_back(i);
-            }
-            this->last_clicked = emitting;
         }
+        for (auto i : possible_moves) {
+            i->changeSelection();
+            this->selected.push_back(i);
+        }
+        this->last_clicked = emitting;
     }
 }
 
