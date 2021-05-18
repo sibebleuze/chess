@@ -158,13 +158,16 @@ void Game::promote() {
             f->setVisible(false);
         }
         this->switch_turn(); // turn was explicitly not switched on move, but only here on piece selection
-        QTableWidgetItem *x = this->history->item(this->history->rowCount() - 1, col);
-        x->setText(x->text() + Game::piece_to_letter()[emitting->getPiece()]);
-        if (this->game_end->isVisible()) {
-            x->setText(x->text() + "#");
+        QString txt = Game::piece_to_letter()[emitting->getPiece()];
+        int m = 0;
+        if (this->game_end->isVisible() && this->history->item(this->history->rowCount() - 1, 0)->text() != "1/2") {
+            txt += "#";
+            m += 1;
         } else if (this->under_attack(king_position, this->turn)) {
-            x->setText(x->text() + "+");
+            txt += "+";
         }
+        QTableWidgetItem *x = this->history->item(this->history->rowCount() - 1 - m, col);
+        x->setText(x->text() + txt);
     }
 }
 
