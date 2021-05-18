@@ -11,8 +11,6 @@ private:
 
     static void execute(Field *destination, Board *b);
 
-    static void revert(const QString &rev_alg);
-
     static std::map<QString, QString> piece_to_letter();
 };
 

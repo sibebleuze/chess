@@ -111,7 +111,7 @@ std::map<QString, int> Board::row_numbers() {
             {"h", 7}}; // map of row names to line numbers
 }
 
-Field *Board::operator[](QString &name) { // overload bracket operator, chess notation has fields a1 -> h8
+Field *Board::operator[](const QString &name) { // overload bracket operator, chess notation has fields a1 -> h8
     // if e.g. name = 'a1',
     int row = Board::row_numbers()[name.left(1)]; // then row = 0
     int column = name.rightRef(1).toInt() - 1; // and column = 0

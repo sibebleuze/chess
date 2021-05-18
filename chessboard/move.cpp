@@ -80,11 +80,11 @@ void Move::execute(Field *destination,
                 if (empos.second == 6) { // castling king-side
                     rook_from = (*b)[std::make_pair(empos.first, 7)];
                     rook_to = (*b)[std::make_pair(empos.first, 5)];
-                    rev_alg = "O-O";
+                    rev_alg = "O - O";
                 } else { // castling queen-side
                     rook_from = (*b)[std::make_pair(empos.first, 0)];
                     rook_to = (*b)[std::make_pair(empos.first, 3)];
-                    rev_alg = "O-O-O";
+                    rev_alg = "O - O - O";
                 }
                 rook_to->changeIcon(rook_from->getPiece(), rook_from->getPieceColor(), rook_to->isSelected());
                 rook_from->changeIcon("", "", rook_from->isSelected());
@@ -143,10 +143,6 @@ void Move::execute(Field *destination,
                                   b->turn) { // only the second check is really necessary, but the first makes sure that this->en_passant_vulnerable exists
         b->en_passant_possible = false; // this can only be true for the duration of one turn, so after one move it is set to false
     }
-}
-
-void Move::revert(const QString &rev_alg) {
-    QStringList l = rev_alg.split(" - ");
 }
 
 std::map<QString, QString> Move::piece_to_letter() {

@@ -17,7 +17,7 @@ public:
     // justification of use of override: Clang-Tidy: Annotate this function with 'override' or (rarely) 'final'
     ~Board() override;
 
-    Field *operator[](QString &name);
+    Field *operator[](const QString &name);
 
     Field *operator[](std::pair<int, int> position);
 
