@@ -11,13 +11,12 @@ class Field : public QPushButton {
 public:
     Field(QWidget *mainwidget,
           int linenumber, int rownumber, // position of the field on the board (8x8)
-          int x_offset, int y_offset); // x and y coordinate of bottom left corner of board (pixels)
-
+          int x_offset, int y_offset, // x and y coordinate of bottom left corner of board (pixels)
+          int field_side); // side length of a field
 
     void changeIcon(QString p = "", QString pc = "", bool select = false);
 
     void changeSelection();
-
 
     QString getPiece();
 
@@ -29,7 +28,11 @@ public:
 
     static std::map<int, QString> row_names();
 
-    static int side;
+    static std::map<int, std::vector<QString>> field_colors();
+
+    static std::map<int, QString> piece_colors();
+
+    static std::map<int, std::vector<QString>> pieces();
 
 private:
     QString field_color;
@@ -39,12 +42,6 @@ private:
     std::pair<int, int> position;
 
     bool selected = false;
-
-    static std::map<int, std::vector<QString>> field_colors();
-
-    static std::map<int, QString> piece_colors();
-
-    static std::map<int, std::vector<QString>> pieces();
 };
 
 

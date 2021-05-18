@@ -1,57 +1,33 @@
 #include "game.h"
 
-Game::Game(QWidget *mainwidget, int x_offset, int y_offset) {
-    this->b = new Board(mainwidget, x_offset, y_offset);
+Game::Game(QWidget *mainwidget, int x_offset, int y_offset, int field_side) {
+    this->board = new Board(mainwidget, x_offset, y_offset, field_side);
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
-            QObject::connect((*this->b)[std::make_pair(i, j)], &QPushButton::clicked, this, &Game::field_clicked);
+            QObject::connect((*this->board)[std::make_pair(i, j)], &QPushButton::clicked, this, &Game::fieldClicked);
         }
     }
     for (auto color : {"white", "black"}) {
-        for (auto f : this->b->get_promoting(color)) {
+        for (auto f : this->board->getPromoting(color)) {
             QObject::connect(f, &QPushButton::clicked, this, &Game::promote);
         }
     }
-    QFont fnt;
     this->game_end = new QLabel(mainwidget);
     this->game_end->setObjectName(QString::fromUtf8("result"));
-    this->game_end->setGeometry(x_offset, y_offset + int(3 / 5.0 * Field::side), 8 * Field::side,
-                                int(3 / 5.0 * Field::side));
+    this->game_end->setGeometry(x_offset, y_offset + int(3 / 5.0 * field_side), 8 * field_side,
+                                int(3 / 5.0 * field_side));
     this->game_end->setText("Game over. Close the program and restart it to start a new game.");
     this->game_end->hide();
-    this->history = new QTableWidget(1, 2, mainwidget);
-    this->history->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    this->history->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    this->history->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    fnt = this->history->font();
-    fnt.setPixelSize(Field::side / 3);
-    this->history->setFont(fnt);
-    this->history->setHorizontalHeaderLabels({"white", "black"});
-    for (int i = 0; i < 2; i++) {
-        QTableWidgetItem *hdr = this->history->horizontalHeaderItem(i);
-        fnt = hdr->font();
-        fnt.setPixelSize(Field::side / 3);
-        hdr->setFont(fnt);
-        this->history->setHorizontalHeaderItem(i, hdr);
-        this->history->setColumnWidth(i, int(2.5 * Field::side));
-    }
-    this->history->setGeometry(x_offset + 10 * Field::side, // next to the board at the right side
-                               y_offset - 8 * Field::side, // on the same height as the board
-                               23 + this->history->verticalHeader()->width() + 5 * Field::side,
-            // two columns, a vertical header, a vertical scrollbar (21px) and 2 extra px
-                               8 * Field::side); // same height as the board
-    // 1 row needed for this->history->verticalHeader() to have the correct width, but game should start with zero rows
-    this->history->setRowCount(0);
-    this->history->show();
+    this->history = new History(mainwidget, x_offset, y_offset, field_side);
 }
 
 Game::~Game() {
-    delete this->b;
+    delete this->board;
     delete this->game_end;
     delete this->history;
 }
 
-void Game::field_clicked() {
+void Game::fieldClicked() {
     // the sender will always be a Field, and since we need to apply Field methods to it, it needs to be cast to a Field here
     auto *emitting = (Field *) (QObject::sender());
     if (this->promoting) {
@@ -66,7 +42,7 @@ void Game::field_clicked() {
         }
         this->selected.clear();
     } else if (emitting->getPieceColor() == this->turn) { // select all possible moves for this field
-        std::vector<Field *> all_moves = this->get_field_moves(emitting);
+        std::vector<Field *> all_moves = this->getFieldMoves(emitting);
         std::vector<Field *> possible_moves;
         for (auto i : all_moves) {
             std::vector<Field *> mv;
@@ -85,7 +61,7 @@ void Game::field_clicked() {
                     exit(EMPTY_FIELD_MOVE); // if it does happen the program should crash instead of exhibiting who knows what unpredictable behaviour
                 }
             }
-            if (!this->under_attack(king_position, pc, mv)) {
+            if (!this->underAttack(king_position, pc, mv)) {
                 if (emitting->getPiece() == "king" &&
                     std::abs(emitting->getPosition().second - i->getPosition().second) ==
                     2) { // we need to check the remaining castling requirements here
@@ -101,21 +77,21 @@ void Game::field_clicked() {
                         king_moved = this->black_king_moved;
                         row = 7;
                     } else {
-                        exit(EMPTY_TURN);
+                        exit(EMPTY_COLOR);
                     }
-                    if (!this->under_attack(king_pos, this->turn)) {
+                    if (!this->underAttack(king_pos, this->turn)) {
                         if (!king_moved) {
                             std::pair<int, int> pos1 = {row, 3};
                             std::pair<int, int> pos2 = {row, 2};
                             std::pair<int, int> pos3 = {row, 5};
                             std::pair<int, int> pos4 = {row, 6};
                             if ((i->getPosition().second == pos2.second &&
-                                 !(this->under_attack(pos1, this->turn) || this->under_attack(pos2, this->turn)))
+                                 !(this->underAttack(pos1, this->turn) || this->underAttack(pos2, this->turn)))
                                 // if the chosen move is queen side castling and the appropriate fields are not under attack
                                 || // or
                                 // if the chosen move is king side castling and the appropriate fields are not under attack
                                 (i->getPosition().second == pos4.second &&
-                                 !(this->under_attack(pos3, this->turn) || this->under_attack(pos4, this->turn)))) {
+                                 !(this->underAttack(pos3, this->turn) || this->underAttack(pos4, this->turn)))) {
                                 possible_moves.push_back(i);
                             }
                         }
@@ -137,18 +113,15 @@ void Game::promote() {
     // the sender will always be a Field, and since we need to apply Field methods to it, it needs to be cast to a Field here
     auto *emitting = (Field *) (QObject::sender());
     std::vector<Field *> promoting_fields;
-    int col;
     std::pair<int, int> king_position;
     if (this->turn == "white") {
-        promoting_fields = this->b->get_promoting("white");
-        col = 0;
+        promoting_fields = this->board->getPromoting("white");
         king_position = this->black_king_position;
     } else if (this->turn == "black") {
-        promoting_fields = this->b->get_promoting("black");
-        col = 1;
+        promoting_fields = this->board->getPromoting("black");
         king_position = this->white_king_position;
     } else {
-        exit(EMPTY_TURN);
+        exit(EMPTY_COLOR);
     }
     if (std::find(promoting_fields.begin(), promoting_fields.end(), emitting) != promoting_fields.end()) {
         this->promoting_field->changeIcon(emitting->getPiece(), emitting->getPieceColor(),
@@ -157,17 +130,14 @@ void Game::promote() {
         for (auto f : promoting_fields) {
             f->setVisible(false);
         }
-        this->switch_turn(); // turn was explicitly not switched on move, but only here on piece selection
+        this->switchTurn(); // turn was explicitly not switched on move, but only here on piece selection
         QString txt = Game::piece_to_letter()[emitting->getPiece()];
-        int m = 0;
-        if (this->game_end->isVisible() && this->history->item(this->history->rowCount() - 1, 0)->text() != "1/2") {
+        if (this->game_end->isVisible() && this->history->getLastText(this->turn) != "1/2") {
             txt += "#";
-            m += 1;
-        } else if (this->under_attack(king_position, this->turn)) {
+        } else if (this->underAttack(king_position, this->turn)) {
             txt += "+";
         }
-        QTableWidgetItem *x = this->history->item(this->history->rowCount() - 1 - m, col);
-        x->setText(x->text() + txt);
+        this->history->setMove(Game::otherColor(this->turn), txt, true);
     }
 }
 
@@ -177,14 +147,14 @@ std::vector<Field *> Game::getStraightMoves(Field *invoking, std::pair<int, int>
     for (auto i : directions) {
         int j = 1;
         Field *f;
-        if (Board::on_board(position, i)) {
+        if (Board::onBoard(position, i)) {
             do {
-                f = (*this->b)[std::make_pair(position.first + j * i.first, position.second + j * i.second)];
+                f = (*this->board)[std::make_pair(position.first + j * i.first, position.second + j * i.second)];
                 if (f->getPieceColor() != invoking->getPieceColor()) { // can't 'capture' own pieces
                     possible_moves.push_back(f);
                 }
                 j += 1;
-            } while (f->getPiece() == "" && Board::on_board(position, std::make_pair(j * i.first, j * i.second)));
+            } while (f->getPiece() == "" && Board::onBoard(position, std::make_pair(j * i.first, j * i.second)));
         }
     }
     return possible_moves;
@@ -201,8 +171,8 @@ std::vector<Field *> Game::getKnightMoves(Field *invoking, std::pair<int, int> p
                                                      {-1, -2},
                                                      {-2, -1}}; // all moves a knight could make
     for (auto i : knight_moves) {
-        if (Board::on_board(position, i)) {
-            Field *f = (*this->b)[std::make_pair(position.first + i.first, position.second + i.second)];
+        if (Board::onBoard(position, i)) {
+            Field *f = (*this->board)[std::make_pair(position.first + i.first, position.second + i.second)];
             if (f->getPieceColor() != invoking->getPieceColor()) { // can't 'capture' own pieces
                 possible_moves.push_back(f);
             }
@@ -222,8 +192,8 @@ std::vector<Field *> Game::getKingMoves(Field *invoking, std::pair<int, int> pos
                                                    {-1, 0},
                                                    {-1, -1}}; // all moves a king could make (except castling)
     for (auto i : king_moves) {
-        if (Board::on_board(position, i)) {
-            Field *f = (*this->b)[std::make_pair(position.first + i.first, position.second + i.second)];
+        if (Board::onBoard(position, i)) {
+            Field *f = (*this->board)[std::make_pair(position.first + i.first, position.second + i.second)];
             if (f->getPieceColor() != invoking->getPieceColor()) { // can't 'capture' own pieces
                 possible_moves.push_back(f);
             }
@@ -236,23 +206,25 @@ std::vector<Field *> Game::getKingMoves(Field *invoking, std::pair<int, int> pos
         rook_left_moved = this->white_rook_left_moved;
         rook_right_moved = this->white_rook_right_moved;
         row = 0;
-    } else {
+    } else if (invoking->getPieceColor() == "black") {
         king_moved = this->black_king_moved;
         rook_left_moved = this->black_rook_left_moved;
         rook_right_moved = this->black_rook_right_moved;
         row = 7;
+    } else {
+        exit(EMPTY_COLOR);
     }
     if (!king_moved) {
         std::pair<int, int> pos1 = {row, 3};
         std::pair<int, int> pos2 = {row, 2};
         std::pair<int, int> pos3 = {row, 5};
         std::pair<int, int> pos4 = {row, 6};
-        if (!rook_left_moved && (*this->b)[pos1]->getPiece() == "" && (*this->b)[pos2]->getPiece() == "") {
-            Field *f = (*this->b)[pos2];
+        if (!rook_left_moved && (*this->board)[pos1]->getPiece() == "" && (*this->board)[pos2]->getPiece() == "") {
+            Field *f = (*this->board)[pos2];
             possible_moves.push_back(f);
         }
-        if (!rook_right_moved && (*this->b)[pos3]->getPiece() == "" && (*this->b)[pos4]->getPiece() == "") {
-            Field *f = (*this->b)[pos4];
+        if (!rook_right_moved && (*this->board)[pos3]->getPiece() == "" && (*this->board)[pos4]->getPiece() == "") {
+            Field *f = (*this->board)[pos4];
             possible_moves.push_back(f);
         }
     }
@@ -273,20 +245,22 @@ std::vector<Field *> Game::getPawnMoves(Field *invoking, std::pair<int, int> pos
         pawn_capture = {{1, 1},
                         {1, -1}};
         en_passant = {-1, 0};
-    } else {
+    } else if (invoking->getPieceColor() == "black") {
         one_forward = {-1, 0};
         start_row = 6;
         two_forward = {-2, 0};
         pawn_capture = {{-1, 1},
                         {-1, -1}};
         en_passant = {1, 0};
+    } else {
+        exit(EMPTY_COLOR);
     }
-    if (Board::on_board(position, one_forward)) {
-        Field *f = (*this->b)[std::make_pair(position.first + one_forward.first, position.second)];
+    if (Board::onBoard(position, one_forward)) {
+        Field *f = (*this->board)[std::make_pair(position.first + one_forward.first, position.second)];
         if (f->getPiece() == "") {
             possible_moves.push_back(f);
             if (position.first == start_row) { // pawn can move forward 2 fields from starting position
-                Field *g = (*this->b)[std::make_pair(position.first + two_forward.first, position.second)];
+                Field *g = (*this->board)[std::make_pair(position.first + two_forward.first, position.second)];
                 if (g->getPiece() == "") {
                     possible_moves.push_back(g);
                 }
@@ -294,13 +268,13 @@ std::vector<Field *> Game::getPawnMoves(Field *invoking, std::pair<int, int> pos
         }
     }
     for (auto i : pawn_capture) {
-        if (Board::on_board(position, i)) {
-            Field *f = (*this->b)[std::make_pair(position.first + i.first, position.second + i.second)];
+        if (Board::onBoard(position, i)) {
+            Field *f = (*this->board)[std::make_pair(position.first + i.first, position.second + i.second)];
             if (f->getPieceColor() != invoking->getPieceColor() && f->getPieceColor() != "") {
                 possible_moves.push_back(f);
             } else if (this->en_passant_possible) { // else if, because this can only lead to a correct move if the previous one wasn't true
-                Field *g = (*this->b)[std::make_pair(position.first + i.first + en_passant.first,
-                                                     position.second + i.second + en_passant.second)];
+                Field *g = (*this->board)[std::make_pair(position.first + i.first + en_passant.first,
+                                                         position.second + i.second + en_passant.second)];
                 if (g == this->en_passant_vulnerable) {
                     possible_moves.push_back(f);
                 }
@@ -310,7 +284,7 @@ std::vector<Field *> Game::getPawnMoves(Field *invoking, std::pair<int, int> pos
     return possible_moves;
 }
 
-std::vector<Field *> Game::get_field_moves(Field *invoking) {
+std::vector<Field *> Game::getFieldMoves(Field *invoking) {
     std::pair<int, int> position = invoking->getPosition();
     QString p = invoking->getPiece();
     std::vector<Field *> possible_moves;
@@ -343,14 +317,8 @@ std::vector<Field *> Game::get_field_moves(Field *invoking) {
     return possible_moves;
 }
 
-void Game::switch_turn() {
-    if (this->turn == "white") {
-        this->turn = "black";
-    } else if (this->turn == "black") {
-        this->turn = "white";
-    } else {
-        exit(EMPTY_TURN);
-    }
+void Game::switchTurn() {
+    this->turn = Game::otherColor(this->turn);
     if (this->en_passant_possible && this->en_passant_vulnerable->getPieceColor() ==
                                      this->turn) { // only the second check is really necessary, but the first makes sure that this->en_passant_vulnerable exists
         this->en_passant_possible = false; // this can only be true for the duration of one turn, so after one move it is set to false
@@ -358,7 +326,7 @@ void Game::switch_turn() {
     this->checkmate();
 }
 
-bool Game::under_attack(std::pair<int, int> position, QString &color, std::vector<Field *> move) {
+bool Game::underAttack(std::pair<int, int> position, QString &color, std::vector<Field *> move) {
     Field *from, *to;
     std::pair<QString, QString> to_field; // needed to assure no piece get destroyed in this process
     if (!move.empty() &&
@@ -372,16 +340,16 @@ bool Game::under_attack(std::pair<int, int> position, QString &color, std::vecto
     }
     Field *attacked;
     if (position.first == -1 && position.second == -1) { // if the king moved, we need to find the position here
-        attacked = this->b->getKingPosition(color);
+        attacked = this->board->getKingPosition(color);
     } else { // otherwise we just assume the correct position was given in the function arguments
-        attacked = (*this->b)[position];
+        attacked = (*this->board)[position];
     }
     std::vector<Field *> enemy_moves;
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
-            Field *f = (*this->b)[std::make_pair(i, j)];
+            Field *f = (*this->board)[std::make_pair(i, j)];
             if (f->getPieceColor() != color && f->getPieceColor() != "") {
-                std::vector<Field *> to_add = this->get_field_moves(f);
+                std::vector<Field *> to_add = this->getFieldMoves(f);
                 enemy_moves.insert(enemy_moves.end(), to_add.begin(), to_add.end());
             }
         }
@@ -400,7 +368,7 @@ void Game::checkmate() {
     bool moves_left = false;
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
-            Field *f = (*this->b)[std::make_pair(i, j)];
+            Field *f = (*this->board)[std::make_pair(i, j)];
             f->clicked(); // not just this->get_field_moves, because some moves are calculated only after that
             if (!this->selected.empty()) {
                 moves_left = true;
@@ -419,29 +387,22 @@ void Game::checkmate() {
     } else if (this->turn == "black") {
         king_position = this->black_king_position;
     } else { // this would mean an empty field has possible moves, this should not ever be possible
-        exit(EMPTY_TURN); // if it does happen the program should crash instead of exhibiting who knows what unpredictable behaviour
+        exit(EMPTY_COLOR); // if it does happen the program should crash instead of exhibiting who knows what unpredictable behaviour
     }
     QString result_notation;
-    if (this->under_attack(king_position, this->turn)) { // king is in check with no moves left: checkmate
+    if (this->underAttack(king_position, this->turn)) { // king is in check with no moves left: checkmate
         if (this->turn == "white") { // turn has switched already
             result_notation = "0 - 1";
         } else if (this->turn == "black") {
             result_notation = "1 - 0";
         } else {
-            exit(EMPTY_TURN);
+            exit(EMPTY_COLOR);
         }
     } else { // no moves left but the king is not in check: stalemate
         result_notation = "1/2 - 1/2";
     }
     this->game_end->show();
-    QStringList l = result_notation.split(" - ");
-    this->history->insertRow(this->history->rowCount());
-    this->history->resizeRowsToContents();
-    for (int i = 0; i < 2; i++) {
-        auto *x = new QTableWidgetItem(l[i]);
-        x->setTextAlignment(Qt::AlignCenter);
-        this->history->setItem(this->history->rowCount() - 1, i, x);
-    }
+    this->history->setResult(result_notation);
 }
 
 std::map<QString, QString> Game::piece_to_letter() {
@@ -453,8 +414,8 @@ std::map<QString, QString> Game::piece_to_letter() {
             {"pawn",   " "}};
 }
 
-QString Game::reversible_algebraic(Field *origin,
-                                   Field *destination) { // calculates reversible algebraic notation of move from origin to destination field
+QString Game::reversibleAlgebraic(Field *origin,
+                                  Field *destination) { // calculates reversible algebraic notation of move from origin to destination field
     std::pair<int, int> ori_pos = origin->getPosition();
     std::pair<int, int> dest_pos = destination->getPosition();
     QString rev_alg = Game::piece_to_letter()[origin->getPiece()] + Field::row_names()[ori_pos.second] +
@@ -472,7 +433,7 @@ QString Game::reversible_algebraic(Field *origin,
 void Game::execute(Field *destination) {
     // executes move from last field clicked on board to destination field and fills in history table with correct move
     Field *origin = this->last_clicked;
-    QString rev_alg = Game::reversible_algebraic(origin, destination);
+    QString rev_alg = Game::reversibleAlgebraic(origin, destination);
     // move the piece here
     destination->changeIcon(origin->getPiece(), origin->getPieceColor(),
                             destination->isSelected());
@@ -485,18 +446,20 @@ void Game::execute(Field *destination) {
         std::pair<int, int> two_forward;
         if (destination->getPieceColor() == "white") {
             opponent_pawn = -1;
-            promoting_fields = this->b->get_promoting("white");
+            promoting_fields = this->board->getPromoting("white");
             last_row = 7;
             two_forward = {3, 1};
-        } else {
+        } else if (destination->getPieceColor() == "black") {
             opponent_pawn = 1;
-            promoting_fields = this->b->get_promoting("black");
+            promoting_fields = this->board->getPromoting("black");
             last_row = 0;
             two_forward = {4, 6};
+        } else {
+            exit(EMPTY_COLOR);
         }
         std::pair<int, int> p1 = destination->getPosition();
         Field *epv = this->en_passant_vulnerable;
-        if (epv == (*this->b)[std::make_pair(p1.first + opponent_pawn, p1.second)] && epv->getPieceColor() != "") {
+        if (epv == (*this->board)[std::make_pair(p1.first + opponent_pawn, p1.second)] && epv->getPieceColor() != "") {
             // take the en passant captured pawn off the board
             epv->changeIcon("", "", epv->isSelected());
             // change the notation from a simple move to a capture + notation e.p. for en passant
@@ -522,20 +485,22 @@ void Game::execute(Field *destination) {
         if (destination->getPieceColor() == "white") {
             this->white_king_position = destination->getPosition(); // we need to keep track of the king position for checking if it is in check
             this->white_king_moved = true; // we need to keep track of the king movement for the castling requirements
-        } else {
+        } else if (destination->getPieceColor() == "black") {
             this->black_king_position = destination->getPosition(); // we need to keep track of the king position for checking if it is in check
             this->black_king_moved = true; // we need to keep track of the king movement for the castling requirements
+        } else {
+            exit(EMPTY_COLOR);
         }
         std::pair<int, int> empos = destination->getPosition();
         if (std::abs(origin->getPosition().second - empos.second) == 2) {
             Field *rook_from, *rook_to;
             if (empos.second == 6) { // castling king-side
-                rook_from = (*this->b)[std::make_pair(empos.first, 7)];
-                rook_to = (*this->b)[std::make_pair(empos.first, 5)];
+                rook_from = (*this->board)[std::make_pair(empos.first, 7)];
+                rook_to = (*this->board)[std::make_pair(empos.first, 5)];
                 rev_alg = "O - O";
             } else { // castling queen-side
-                rook_from = (*this->b)[std::make_pair(empos.first, 0)];
-                rook_to = (*this->b)[std::make_pair(empos.first, 3)];
+                rook_from = (*this->board)[std::make_pair(empos.first, 0)];
+                rook_to = (*this->board)[std::make_pair(empos.first, 3)];
                 rev_alg = "O - O - O";
             }
             rook_to->changeIcon(rook_from->getPiece(), rook_from->getPieceColor(), rook_to->isSelected());
@@ -553,39 +518,35 @@ void Game::execute(Field *destination) {
             this->black_rook_right_moved = true;
         }
     }
-    int col;
     std::pair<int, int> king_position;
-    QTableWidgetItem *x;
     if (this->turn == "white") {
-        col = 0;
         king_position = this->black_king_position;
-        this->history->insertRow(this->history->rowCount());
-        this->history->resizeRowsToContents();
-        for (int i = 1; i >= 0; i--) {
-            x = new QTableWidgetItem(" ");
-            x->setTextAlignment(Qt::AlignCenter);
-            this->history->setItem(this->history->rowCount() - 1, i, x);
-        }
-        this->history->scrollToItem(x, QAbstractItemView::PositionAtBottom);
     } else if (this->turn == "black") {
-        col = 1;
         king_position = this->white_king_position;
     } else {
-        exit(EMPTY_TURN);
+        exit(EMPTY_COLOR);
     }
     if (!this->promoting) {
-        this->switch_turn(); // turn is switched here, everything below this uses the new turn color
-        if (this->game_end->isVisible() && this->history->item(this->history->rowCount() - 1, 0)->text() != "1/2") {
+        this->switchTurn(); // turn is switched here, everything below this uses the new turn color
+        if (this->game_end->isVisible() && this->history->getLastText(this->turn) != "1/2") {
             rev_alg += "#";
-        } else if (this->under_attack(king_position, this->turn)) {
+        } else if (this->underAttack(king_position, this->turn)) {
             rev_alg += "+";
         }
+        this->history->setMove(Game::otherColor(this->turn), rev_alg);
+    } else {
+        this->history->setMove(this->turn, rev_alg);
     }
-    int m = 0;
-    x = this->history->item(this->history->rowCount() - 1, col);
-    if (x->text() != " ") {
-        m += 1;
+}
+
+QString Game::otherColor(const QString &color) {
+    QString c;
+    if (color == "white") {
+        c = "black";
+    } else if (color == "black") {
+        c = "white";
+    } else {
+        exit(EMPTY_COLOR);
     }
-    x = this->history->item(this->history->rowCount() - 1 - m, col);
-    x->setText(rev_alg);
+    return c;
 }

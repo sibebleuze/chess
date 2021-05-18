@@ -1,38 +1,40 @@
 #include "board.h"
 
-Board::Board(QWidget *mainwidget, int x_offset, int y_offset) {
+Board::Board(QWidget *mainwidget, int x_offset, int y_offset, int field_side) {
     QFont fnt;
     for (int i = 0; i < 4; i++) {
         Field *g, *h;
-        g = new Field(mainwidget, 0, i, x_offset + int((8.5 - i) * Field::side), y_offset - (i + 2) * Field::side);
-        h = new Field(mainwidget, 7, i, x_offset + int((8.5 - i) * Field::side), y_offset + (5 - i) * Field::side);
+        g = new Field(mainwidget, 0, i, x_offset + int((8.5 - i) * field_side), y_offset - (i + 2) * field_side,
+                      field_side);
+        h = new Field(mainwidget, 7, i, x_offset + int((8.5 - i) * field_side), y_offset + (5 - i) * field_side,
+                      field_side);
         g->setVisible(false);
         h->setVisible(false);
         this->white_promoting.push_back(g);
         this->black_promoting.push_back(h);
         for (int j = 0; j < 2; j++) {
-            Line *l = new Line(mainwidget, 2 * i + j, x_offset, y_offset);
+            Line *l = new Line(mainwidget, 2 * i + j, x_offset, y_offset, field_side);
             this->lines.push_back(l);
             QLabel *q, *r;
             q = new QLabel(mainwidget);
             r = new QLabel(mainwidget);
             q->setObjectName("column" + QString::number(2 * i + j));
             r->setObjectName("row" + QString::number(2 * i + j));
-            q->setGeometry(x_offset + int(2 / 5.0 * Field::side) + Field::side * (2 * i + j),
+            q->setGeometry(x_offset + int(2 / 5.0 * field_side) + field_side * (2 * i + j),
                            y_offset,
-                           Field::side / 2,
-                           Field::side / 2);
-            r->setGeometry(x_offset - int(3 / 10.0 * Field::side),
-                           y_offset - int(7 / 10.0 * Field::side) - Field::side * (2 * i + j),
-                           Field::side / 2,
-                           Field::side / 2);
+                           field_side / 2,
+                           field_side / 2);
+            r->setGeometry(x_offset - int(3 / 10.0 * field_side),
+                           y_offset - int(7 / 10.0 * field_side) - field_side * (2 * i + j),
+                           field_side / 2,
+                           field_side / 2);
             q->setText(Field::row_names()[2 * i + j]);
             r->setText(QString::number(2 * i + j + 1));
             fnt = q->font();
-            fnt.setPixelSize(Field::side / 3);
+            fnt.setPixelSize(field_side / 3);
             q->setFont(fnt);
             fnt = r->font();
-            fnt.setPixelSize(Field::side / 3);
+            fnt.setPixelSize(field_side / 3);
             r->setFont(fnt);
             q->show();
             r->show();
@@ -66,7 +68,7 @@ Field *Board::operator[](std::pair<int, int> position) {
     return (*this->lines[position.first])[position.second];
 }
 
-bool Board::on_board(std::pair<int, int> position, std::pair<int, int> increment) {
+bool Board::onBoard(std::pair<int, int> position, std::pair<int, int> increment) {
     return 0 <= position.first + increment.first && position.first + increment.first < 8 &&
            0 <= position.second + increment.second && position.second + increment.second < 8;
 } // checks if a move increment from a certain position is still on the board or not
@@ -83,7 +85,7 @@ Field *Board::getKingPosition(QString &color) {
     exit(KING_MISSING);
 }
 
-std::vector<Field *> Board::get_promoting(const QString &color) {
+std::vector<Field *> Board::getPromoting(const QString &color) {
     std::vector<Field *> prom;
     if (color == "white") {
         prom = this->white_promoting;

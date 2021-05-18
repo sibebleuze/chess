@@ -55,9 +55,7 @@ std::map<int, std::vector<QString>> Field::pieces() {
     }; // map of linenumber and position in line to piece on field
 }
 
-int Field::side = 50; // all fields are squares with this height and width
-
-Field::Field(QWidget *mainwidget, int linenumber, int rownumber, int x_offset, int y_offset) :
+Field::Field(QWidget *mainwidget, int linenumber, int rownumber, int x_offset, int y_offset, int field_side) :
         QPushButton(mainwidget) {
     this->field_color = Field::field_colors()[linenumber][rownumber];
     this->piece = Field::pieces()[linenumber][rownumber];
@@ -65,9 +63,9 @@ Field::Field(QWidget *mainwidget, int linenumber, int rownumber, int x_offset, i
     this->position = std::make_pair(linenumber, rownumber);
     this->setObjectName(
             Field::row_names()[rownumber] + QString(linenumber + 1)); // e.g. 'a1' when linenumber = 0 and rownumber = 0
-    this->setGeometry(x_offset + Field::side * rownumber, y_offset - Field::side * (linenumber + 1),
+    this->setGeometry(x_offset + field_side * rownumber, y_offset - field_side * (linenumber + 1),
             // linenumber + 1, because otherwise (x_offset, y_offset) isn't the bottom left point of the board
-                      Field::side, Field::side);
+                      field_side, field_side);
     QString filename;
     if (this->piece != "") {
         filename = "://" + this->piece_color + "_" + this->piece + "_" + this->field_color + ".svg";

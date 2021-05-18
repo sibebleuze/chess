@@ -3,6 +3,7 @@
 
 #include <QTableWidget>
 #include <QHeaderView>
+#include "history.h"
 #include "../chessboard/board.h"
 
 class Game : public QObject {
@@ -10,21 +11,27 @@ public:
     // justification of use of explicit:
     // Clang-Tidy: Constructors that are callable with a single argument must
     // be marked explicit to avoid unintentional implicit conversions
-    explicit Game(QWidget *mainwidget, int x_offset = 100, int y_offset = 500);
+    explicit Game(QWidget *mainwidget, int x_offset = 100, int y_offset = 500, int field_side = 50);
 
     // justification of use of override: Clang-Tidy: Annotate this function with 'override' or (rarely) 'final'
     ~Game() override;
 
-    void switch_turn();
+    void switchTurn();
+
+    static QString reversibleAlgebraic(Field *origin, Field *destination);
+
+    static std::map<QString, QString> piece_to_letter();
+
+    static QString otherColor(const QString &color);
 
 public slots:
 
-    void field_clicked();
+    void fieldClicked();
 
     void promote();
 
 private:
-    Board *b;
+    Board *board;
 
     QString turn = "white";
 
@@ -57,22 +64,18 @@ private:
 
     std::vector<Field *> getKingMoves(Field *invoking, std::pair<int, int> position);
 
-    std::vector<Field *> get_field_moves(Field *invoking);
+    std::vector<Field *> getFieldMoves(Field *invoking);
 
-    bool under_attack(std::pair<int, int> position, QString &color, std::vector<Field *> move = std::vector<Field *>());
+    bool underAttack(std::pair<int, int> position, QString &color, std::vector<Field *> move = std::vector<Field *>());
 
     bool promoting = false;
     Field *promoting_field = nullptr;
 
     void checkmate();
 
-    QTableWidget *history;
-
-    static QString reversible_algebraic(Field *origin, Field *destination);
+    History *history;
 
     void execute(Field *destination);
-
-    static std::map<QString, QString> piece_to_letter();
 };
 
 

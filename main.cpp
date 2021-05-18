@@ -13,4 +13,4 @@ int main(int argc, char *argv[]) {
     return QApplication::exec();
 }
 // TODO: put comments everywhere
-// TODO: make all class objects a pointer (if this doesn't break everything)
+// TODO: make all class objects a pointer (if this doesn't break everything (and if it's necessary))

@@ -20,14 +20,15 @@ endif ()
 find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 
 add_executable(chess
+        "nvwa-1.1/nvwa/debug_new.cpp" # catch some memory leaks
         "main.cpp"
         "mainwindow/mainwindow.cpp"
         "chessboard/board.cpp"
         "chessboard/line.cpp"
         "chessboard/field.cpp"
         "gamecontrol/game.cpp"
-        "icons/qtres.qrc"
-        "nvwa-1.1/nvwa/debug_new.cpp") # catch some memory leaks
+        "gamecontrol/history.cpp"
+        "icons/qtres.qrc")
 # TODO: remove nvwa from final project, reset CMAKE_CXX_STANDARD to 17 (lowered to 14 for nvwa)
 
 target_link_libraries(chess ${REQUIRED_LIBS_QUALIFIED})

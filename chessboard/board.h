@@ -8,15 +8,15 @@
 
 class Board {
 public:
-    Board(QWidget *mainwidget, int x_offset, int y_offset);
+    Board(QWidget *mainwidget, int x_offset, int y_offset, int field_side);
 
     ~Board();
 
     Field *operator[](std::pair<int, int> position);
 
-    std::vector<Field *> get_promoting(const QString &color);
+    std::vector<Field *> getPromoting(const QString &color);
 
-    static bool on_board(std::pair<int, int> position, std::pair<int, int> increment);
+    static bool onBoard(std::pair<int, int> position, std::pair<int, int> increment);
 
     Field *getKingPosition(QString &color);
 
