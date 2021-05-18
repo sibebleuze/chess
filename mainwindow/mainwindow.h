@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include <QApplication>
 #include <QDesktopWidget>
-#include "../chessboard/board.h"
+#include "../gamecontrol/game.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -17,7 +17,7 @@ public:
 
     ~MainWindow();
 
-    Board *b;
+    Game *g;
 
 private:
     Ui::MainWindow *ui;

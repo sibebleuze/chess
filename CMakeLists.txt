@@ -25,7 +25,7 @@ add_executable(chess
         "chessboard/board.cpp"
         "chessboard/line.cpp"
         "chessboard/field.cpp"
-        "chessboard/move.cpp"
+        "gamecontrol/game.cpp"
         "icons/qtres.qrc"
         "nvwa-1.1/nvwa/debug_new.cpp") # catch some memory leaks
 # TODO: remove nvwa from final project, reset CMAKE_CXX_STANDARD to 17 (lowered to 14 for nvwa)

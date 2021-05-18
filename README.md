@@ -32,6 +32,7 @@ This program has a few custom exit codes:
   here too an exit is triggered to prevent further unexpected behaviour
 * 82: the parameter that keeps track of whose turn it is, is empty, which is undefined behaviour, so any further
   unpredictable action is avoided by exiting
+* 83: something is asking for the promotion fields of a player that is not white or black
 
 These situations are all impossible to reach as far as I know, but who knows where I might have made a mistake. If any
 of the above situations occur, the program will exit. Please do let me know if this happens.

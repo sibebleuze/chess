@@ -8,3 +8,4 @@ the ranges free for custom defined exit codes are:
 #define EMPTY_FIELD_MOVE 80 // an empty field has moves it can make, something clearly went wrong here
 #define KING_MISSING 81 // while trying to find one of the kings, the program struck out, so one of them is missing, which is impossible
 #define EMPTY_TURN 82 // the parameter that keeps track of whose turn it is, is empty, which is impossible
+#define EMPTY_PROMOTING 83 // the board is asked to let a player promote that is not white or black

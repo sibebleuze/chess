@@ -5,10 +5,10 @@ MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent),
         ui(new Ui::MainWindow) {
     ui->setupUi(this);
-    b = new Board(this);
+    g = new Game(this);
 }
 
 MainWindow::~MainWindow() {
-    delete b;
-    delete ui;
+    delete this->g;
+    delete this->ui;
 }
