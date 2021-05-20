@@ -9,7 +9,8 @@ int main(int argc, char *argv[]) {
     w.setMinimumSize(1000, 600);
     w.move(QGuiApplication::screens()[0]->availableGeometry().center() -
            w.rect().center()); // window is centered on startup
-    w.showMaximized(); // window is opened maximized on startup
+//    w.showMaximized(); // window is opened maximized on startup // TODO: pick one!
+    w.show(); // window is opened with minimum size (but not minimized)
     return QApplication::exec();
 }
 // TODO: put comments everywhere

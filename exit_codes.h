@@ -4,8 +4,11 @@ the ranges free for custom defined exit codes are:
 8-63, 79-125, 166-199 and 243-255.
 */
 
-// for now there isn't much in here, but who knows when i'll need more of these
-#define EMPTY_FIELD_MOVE 80 // an empty field has moves it can make, something clearly went wrong here
-#define KING_MISSING 81 // while trying to find one of the kings, the program struck out, so one of them is missing, which is impossible
-#define EMPTY_COLOR 82 // a color parameter that is supposed to be white or black, is empty
-#define EMPTY_PROMOTING 83 // the board is asked to let a player promote that is not white or black
+// an empty field has moves it can make, something clearly went wrong here
+#define EMPTY_FIELD_MOVE 80
+// while trying to find one of the kings, the program struck out, so one of them is missing
+#define KING_MISSING 81
+// a color parameter that is supposed to be white or black, is empty
+#define COLOR_MISSING 82
+// while starting up a client or server, the parameter that distinguishes between the two is empty
+#define ONLINE_TYPE_MISSING 83

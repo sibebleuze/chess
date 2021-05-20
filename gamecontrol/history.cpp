@@ -61,7 +61,7 @@ QTableWidgetItem *History::getItem(int row, const QString &color) {
     } else if (color == "black") {
         col = 1;
     } else {
-        exit(EMPTY_COLOR); // the input color of this function will be Game::turn
+        exit(COLOR_MISSING); // the input color of this function will be Game::turn
     }
     return this->table->item(row, col);
 }

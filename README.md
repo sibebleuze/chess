@@ -20,6 +20,12 @@ To build from source, run the following commands from the chess directory:
 The executable should now be in the chess directory. If any of the above steps fail due to Qt not being found, specify
 the correct CMAKE_PREFIX_PATH in CMakeLists.txt (where it says "C:/Qt/5.15.2/msvc2019" now).
 
+Chess engine:
+
+For the chess engine to work, a stockfish executable must be in your path variable. You can test this by opening a
+command prompt and typing `stockfish`. If you don't know where to get stockfish, a stockfish executable is provided in
+the stockfish zip archive for both Windows and Linux. Currently this is Stockfish 13.
+
 The program consists of a basic chess game, only clicking is supported to move the pieces around. On the right side of
 the screen next to the board is a live report of the moves played
 in [reversible algebraic notation](https://en.wikipedia.org/wiki/Chess_notation).
@@ -30,11 +36,8 @@ This program has a few custom exit codes:
   know how to continue and exits to prevent further unexpected behaviour
 * 81: while trying to find one of the kings, the program struck out, so one of them is missing, which is impossible;
   here too an exit is triggered to prevent further unexpected behaviour
-* 82: the parameter that keeps track of whose turn it is, is empty, which is undefined behaviour, so any further
-  unpredictable action is avoided by exiting
-* 83: something is asking for the promotion fields of a player that is not white or black
-* 84: in some way, a field lost its color while retaining its piece, something went wrong so an exit is the logical
-  follow-up
+* 82: a parameter that should be white or black, is empty, which is undefined behaviour, so any further unpredictable
+  action is avoided by exiting
 
 These situations are all impossible to reach as far as I know, but who knows where I might have made a mistake. If any
 of the above situations occur, the program will exit. Please do let me know if this happens.

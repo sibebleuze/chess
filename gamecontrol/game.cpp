@@ -77,7 +77,7 @@ void Game::fieldClicked() {
                         king_moved = this->black_king_moved;
                         row = 7;
                     } else {
-                        exit(EMPTY_COLOR);
+                        exit(COLOR_MISSING);
                     }
                     if (!this->underAttack(king_pos, this->turn)) {
                         if (!king_moved) {
@@ -121,7 +121,7 @@ void Game::promote() {
         promoting_fields = this->board->getPromoting("black");
         king_position = this->white_king_position;
     } else {
-        exit(EMPTY_COLOR);
+        exit(COLOR_MISSING);
     }
     if (std::find(promoting_fields.begin(), promoting_fields.end(), emitting) != promoting_fields.end()) {
         this->promoting_field->changeIcon(emitting->getPiece(), emitting->getPieceColor(),
@@ -212,7 +212,7 @@ std::vector<Field *> Game::getKingMoves(Field *invoking, std::pair<int, int> pos
         rook_right_moved = this->black_rook_right_moved;
         row = 7;
     } else {
-        exit(EMPTY_COLOR);
+        exit(COLOR_MISSING);
     }
     if (!king_moved) {
         std::pair<int, int> pos1 = {row, 3};
@@ -253,7 +253,7 @@ std::vector<Field *> Game::getPawnMoves(Field *invoking, std::pair<int, int> pos
                         {-1, -1}};
         en_passant = {1, 0};
     } else {
-        exit(EMPTY_COLOR);
+        exit(COLOR_MISSING);
     }
     if (Board::onBoard(position, one_forward)) {
         Field *f = (*this->board)[std::make_pair(position.first + one_forward.first, position.second)];
@@ -382,25 +382,19 @@ void Game::checkmate() {
     }
     // if this point is reached, the player is out of moves and checkmate or stalemate is reached
     std::pair<int, int> king_position;
+    QString result_notation;
     if (this->turn == "white") {
         king_position = this->white_king_position;
+        result_notation = "0 - 1"; // turn has switched already, so if white has no moves, black wins
     } else if (this->turn == "black") {
         king_position = this->black_king_position;
+        result_notation = "1 - 0";
     } else { // this would mean an empty field has possible moves, this should not ever be possible
-        exit(EMPTY_COLOR); // if it does happen the program should crash instead of exhibiting who knows what unpredictable behaviour
+        exit(COLOR_MISSING); // if it does happen the program should crash instead of exhibiting who knows what unpredictable behaviour
     }
-    QString result_notation;
-    if (this->underAttack(king_position, this->turn)) { // king is in check with no moves left: checkmate
-        if (this->turn == "white") { // turn has switched already
-            result_notation = "0 - 1";
-        } else if (this->turn == "black") {
-            result_notation = "1 - 0";
-        } else {
-            exit(EMPTY_COLOR);
-        }
-    } else { // no moves left but the king is not in check: stalemate
+    if (!this->underAttack(king_position, this->turn)) { // no moves left but the king is not in check: stalemate
         result_notation = "1/2 - 1/2";
-    }
+    } // else: the king is in check with no moves left: checkmate (result_notation already set earlier)
     this->game_end->show();
     this->history->setResult(result_notation);
 }
@@ -455,7 +449,7 @@ void Game::execute(Field *destination) {
             last_row = 0;
             two_forward = {4, 6};
         } else {
-            exit(EMPTY_COLOR);
+            exit(COLOR_MISSING);
         }
         std::pair<int, int> p1 = destination->getPosition();
         Field *epv = this->en_passant_vulnerable;
@@ -489,7 +483,7 @@ void Game::execute(Field *destination) {
             this->black_king_position = destination->getPosition(); // we need to keep track of the king position for checking if it is in check
             this->black_king_moved = true; // we need to keep track of the king movement for the castling requirements
         } else {
-            exit(EMPTY_COLOR);
+            exit(COLOR_MISSING);
         }
         std::pair<int, int> empos = destination->getPosition();
         if (std::abs(origin->getPosition().second - empos.second) == 2) {
@@ -524,7 +518,7 @@ void Game::execute(Field *destination) {
     } else if (this->turn == "black") {
         king_position = this->white_king_position;
     } else {
-        exit(EMPTY_COLOR);
+        exit(COLOR_MISSING);
     }
     if (!this->promoting) {
         this->switchTurn(); // turn is switched here, everything below this uses the new turn color
@@ -546,7 +540,7 @@ QString Game::otherColor(const QString &color) {
     } else if (color == "black") {
         c = "white";
     } else {
-        exit(EMPTY_COLOR);
+        exit(COLOR_MISSING);
     }
     return c;
 }

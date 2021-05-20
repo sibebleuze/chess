@@ -92,7 +92,7 @@ std::vector<Field *> Board::getPromoting(const QString &color) {
     } else if (color == "black") {
         prom = this->black_promoting;
     } else {
-        exit(EMPTY_PROMOTING);
+        exit(COLOR_MISSING);
     }
     return prom;
 }
