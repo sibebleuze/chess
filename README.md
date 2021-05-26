@@ -23,8 +23,8 @@ the correct CMAKE_PREFIX_PATH in CMakeLists.txt (where it says "C:/Qt/5.15.2/msv
 Chess engine:
 
 For the chess engine to work, a stockfish executable must be in your path variable. You can test this by opening a
-command prompt and typing `stockfish`. If you don't know where to get stockfish, a stockfish executable is provided in
-the stockfish zip archive for both Windows and Linux. Currently this is Stockfish 13.
+command prompt and typing `stockfish`. If you don't know where to get stockfish, a stockfish executable will be provided
+with every release for both Windows and Linux. Currently this is Stockfish 13.
 
 The program consists of a basic chess game, only clicking is supported to move the pieces around. On the right side of
 the screen next to the board is a live report of the moves played
