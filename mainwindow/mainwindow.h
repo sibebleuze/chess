@@ -5,6 +5,7 @@
 #include <QLineEdit>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include "../gamemodes/engine.h"
 #include "../gamecontrol/game.h"
 
 QT_BEGIN_NAMESPACE
@@ -30,16 +31,22 @@ public:
 
 public slots:
 
-    void mode_choice();
+    void modeChoice();
 
-    void level_choice();
+    void levelChoice();
 
-    void online_submit();
+    void onlineSubmit();
+
+    void errorHandler(int exitcode);
+
+signals:
+
+    void chessError(int exitcode);
 
 private:
     Ui::MainWindow *ui;
     Game *g = nullptr;
-    // Engine *e = nullptr;
+    Engine *e = nullptr;
     // Server *s = nullptr;
     // Client *c = nullptr;
 

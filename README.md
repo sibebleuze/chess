@@ -13,7 +13,7 @@ Linux instructions:
 
 To build from source, run the following commands from the chess directory:
 
-* ```unzip nvwa-1.1.zip``` (or get it from https://github.com/adah1972/nvwa)
+* ```unzip nvwa-1.1.zip``` (or get it from [the nvwa Github repo](https://github.com/adah1972/nvwa))
 * ```cmake .```
 * ```make```
 
@@ -23,11 +23,12 @@ the correct CMAKE_PREFIX_PATH in CMakeLists.txt (where it says "C:/Qt/5.15.2/msv
 Chess engine:
 
 For the chess engine to work, a stockfish executable must be in your path variable. You can test this by opening a
-command prompt and typing `stockfish`. If you don't know where to get stockfish, a stockfish executable will be provided
-with every release for both Windows and Linux. Currently this is Stockfish 13.
+command prompt and typing `stockfish`. You can get Stockfish [here](https://stockfishchess.org/download/). This program
+is tested to work with Stockfish 13. Stockfish is ditributed under the
+[GNU General Public License v3.0](https://github.com/official-stockfish/Stockfish/blob/master/Copying.txt).
 
-The program consists of a basic chess game, only clicking is supported to move the pieces around. On the right side of
-the screen next to the board is a live report of the moves played
+The program consists of a basic chess game, only mouse clicks are supported to interact with the program. On the right
+side of the screen next to the board is a live report of the moves played
 in [reversible algebraic notation](https://en.wikipedia.org/wiki/Chess_notation).
 
 This program has a few custom exit codes:
@@ -38,6 +39,11 @@ This program has a few custom exit codes:
   here too an exit is triggered to prevent further unexpected behaviour
 * 82: a parameter that should be white or black, is empty, which is undefined behaviour, so any further unpredictable
   action is avoided by exiting
+* 83: a parameter that should distinguish between client and server mode is empty, since the program needs this
+  information to continue, it just breaks off here
+* 84: while trying to start up stockfish as a command line process, an chessError occurred, since this may be due to
+  stockfish being absent, the program does not retry but exits instead
 
-These situations are all impossible to reach as far as I know, but who knows where I might have made a mistake. If any
-of the above situations occur, the program will exit. Please do let me know if this happens.
+These situations are all impossible to reach as far as I know (except for the one with stockfish), but who knows where I
+might have made a mistake. If any of the above situations occur, the program will exit. Please do let me know if this
+happens (by submitting an issue on the [Github repo](https://github.com/sibebleuze/chess)).

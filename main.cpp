@@ -6,6 +6,7 @@ int main(int argc, char *argv[]) {
     Q_INIT_RESOURCE(qtres);
     QApplication app(argc, argv);
     MainWindow w;
+    QObject::connect(&w, &MainWindow::chessError, &app, &QApplication::exit);
     w.setMinimumSize(1000, 600);
     w.move(QGuiApplication::screens()[0]->availableGeometry().center() -
            w.rect().center()); // window is centered on startup

@@ -28,6 +28,7 @@ add_executable(chess
         "chessboard/field.cpp"
         "gamecontrol/game.cpp"
         "gamecontrol/history.cpp"
+        "gamemodes/engine.cpp"
         "icons/qtres.qrc")
 # TODO: remove nvwa from final project, reset CMAKE_CXX_STANDARD to 17 (lowered to 14 for nvwa)
 

@@ -12,3 +12,5 @@ the ranges free for custom defined exit codes are:
 #define COLOR_MISSING 82
 // while starting up a client or server, the parameter that distinguishes between the two is empty
 #define ONLINE_TYPE_MISSING 83
+// the program tried to start up stockfish, but failed
+#define STOCKFISH_FAILURE 84

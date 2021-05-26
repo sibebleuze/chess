@@ -53,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent) :
         mode_btn->setObjectName(mode);
         mode_btn->setText(mode_txt);
         mode_btn->setGeometry(mode_pos.first, mode_pos.second, 200, 100);
-        QObject::connect(mode_btn, &QPushButton::clicked, this, &MainWindow::mode_choice);
+        QObject::connect(mode_btn, &QPushButton::clicked, this, &MainWindow::modeChoice);
         mode_btn->show();
         if (i > 1) {
             mode_btn->setDisabled(true);
@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow() {
     delete this->ui;
     delete this->g;
-    // delete this->e;
+    delete this->e;
     // delete this->s;
     // delete this->c;
     for (int i = 0; i < this->mode_infos.size(); i++) {
@@ -87,7 +87,7 @@ MainWindow::~MainWindow() {
     delete this->own_ip;
 }
 
-void MainWindow::mode_choice() {
+void MainWindow::modeChoice() {
     for (auto mode : this->modes) {
         mode->hide();
     }
@@ -102,10 +102,10 @@ void MainWindow::mode_choice() {
         for (int i = 0; i < 3; i++) {
             QString lvltxt = MainWindow::lvltxts()[i];
             auto *lvlbtn = new QPushButton(this);
-            lvlbtn->setObjectName("level" + QString(i));
+            lvlbtn->setObjectName("level" + QString::number(i));
             lvlbtn->setText(lvltxt);
             lvlbtn->setGeometry(250 + 200 * i, 280, 100, 40);
-            QObject::connect(lvlbtn, &QPushButton::clicked, this, &MainWindow::level_choice);
+            QObject::connect(lvlbtn, &QPushButton::clicked, this, &MainWindow::levelChoice);
             lvlbtn->show();
             this->levels.push_back(lvlbtn);
         }
@@ -134,7 +134,7 @@ void MainWindow::mode_choice() {
         this->submit_serverinfo->setObjectName("server");
         this->submit_serverinfo->setText("Submit");
         this->submit_serverinfo->setGeometry(250, 250, 50, 30);
-        QObject::connect(this->submit_serverinfo, &QPushButton::clicked, this, &MainWindow::online_submit);
+        QObject::connect(this->submit_serverinfo, &QPushButton::clicked, this, &MainWindow::onlineSubmit);
         this->submit_serverinfo->show();
     } else if (mode == "client") {
         // make and show client labels and lineedits, geometry y equal and x ~ i
@@ -160,21 +160,23 @@ void MainWindow::mode_choice() {
         this->submit_serverinfo->setObjectName("client");
         this->submit_serverinfo->setText("Submit");
         this->submit_serverinfo->setGeometry(250, 250, 50, 30);
-        QObject::connect(this->submit_serverinfo, &QPushButton::clicked, this, &MainWindow::online_submit);
+        QObject::connect(this->submit_serverinfo, &QPushButton::clicked, this, &MainWindow::onlineSubmit);
         this->submit_serverinfo->show();
     }
 }
 
-void MainWindow::level_choice() {
+void MainWindow::levelChoice() {
     auto *emitting = (QPushButton *) (QObject::sender());
     int lvl = emitting->objectName().rightRef(1).toInt();
     for (auto level : this->levels) {
         level->hide();
     }
-//    this->e = new Engine(this, lvl); // this goes to parameter *mainwindow, lvl goes to parameter level
+    this->e = new Engine(this); // this goes to parameter *mainwindow
+    QObject::connect(this->e, &Engine::chessError, this, &MainWindow::errorHandler);
+    this->e->start(lvl); // , lvl goes to parameter level
 }
 
-void MainWindow::online_submit() {
+void MainWindow::onlineSubmit() {
     auto *emitting = (QPushButton *) (QObject::sender());
     QString online = emitting->objectName();
     int serverport = this->port->text().toInt();
@@ -203,4 +205,8 @@ void MainWindow::online_submit() {
     } else {
         exit(ONLINE_TYPE_MISSING);
     }
+}
+
+void MainWindow::errorHandler(int exitcode) {
+    emit this->chessError(exitcode);
 }
