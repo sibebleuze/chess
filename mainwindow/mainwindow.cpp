@@ -100,14 +100,22 @@ void MainWindow::modeChoice() {
         this->g = new Game(this);
     } else if (mode == "localpve") {
         for (int i = 0; i < 3; i++) {
-            QString lvltxt = MainWindow::lvltxts()[i];
-            auto *lvlbtn = new QPushButton(this);
-            lvlbtn->setObjectName("level" + QString::number(i));
-            lvlbtn->setText(lvltxt);
-            lvlbtn->setGeometry(250 + 200 * i, 280, 100, 40);
-            QObject::connect(lvlbtn, &QPushButton::clicked, this, &MainWindow::levelChoice);
-            lvlbtn->show();
-            this->levels.push_back(lvlbtn);
+            QString whitelvltxt = MainWindow::lvltxts()[i] + "\nPlay as white";
+            auto *whitelvlbtn = new QPushButton(this);
+            whitelvlbtn->setObjectName("white" + QString::number(i));
+            whitelvlbtn->setText(whitelvltxt);
+            whitelvlbtn->setGeometry(250 + 200 * i, 230, 100, 60);
+            QObject::connect(whitelvlbtn, &QPushButton::clicked, this, &MainWindow::levelChoice);
+            whitelvlbtn->show();
+            this->levels.push_back(whitelvlbtn);
+            QString blacklvltxt = MainWindow::lvltxts()[i] + "\nPlay as black";
+            auto *blacklvlbtn = new QPushButton(this);
+            blacklvlbtn->setObjectName("black" + QString::number(i));
+            blacklvlbtn->setText(blacklvltxt);
+            blacklvlbtn->setGeometry(250 + 200 * i, 330, 100, 60);
+            QObject::connect(blacklvlbtn, &QPushButton::clicked, this, &MainWindow::levelChoice);
+            blacklvlbtn->show();
+            this->levels.push_back(blacklvlbtn);
         }
     } else if (mode == "server") {
         QNetworkAccessManager man(this);
@@ -166,14 +174,15 @@ void MainWindow::modeChoice() {
 }
 
 void MainWindow::levelChoice() {
-    auto *emitting = (QPushButton *) (QObject::sender());
-    int lvl = emitting->objectName().rightRef(1).toInt();
     for (auto level : this->levels) {
         level->hide();
     }
-    this->e = new Engine(this); // this goes to parameter *mainwindow
+    auto *emitting = (QPushButton *) (QObject::sender());
+    int lvl = emitting->objectName().rightRef(1).toInt();
+    QString color = emitting->objectName().left(5);
+    this->e = new Engine(this, color);
     QObject::connect(this->e, &Engine::chessError, this, &MainWindow::errorHandler);
-    this->e->start(lvl); // , lvl goes to parameter level
+    this->e->start(lvl);
 }
 
 void MainWindow::onlineSubmit() {

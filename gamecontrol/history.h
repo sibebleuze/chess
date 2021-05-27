@@ -3,6 +3,7 @@
 
 #include <QTableWidget>
 #include <QHeaderView>
+#include <QDebug> // TODO: remove QDebug from final project
 #include "../exit_codes.h"
 
 class History {
@@ -16,6 +17,8 @@ public:
     void setMove(const QString &color, const QString &move, bool add = false);
 
     void setResult(const QString &result);
+
+    QStringList getHistory(QString color = "");
 
 private:
     QTableWidget *table;

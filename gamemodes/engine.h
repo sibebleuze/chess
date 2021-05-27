@@ -7,11 +7,17 @@
 class Engine : public QObject {
 Q_OBJECT
 public:
-    Engine(QWidget *mainwidget);
+    // Clang-Tidy: Single-argument constructors must be marked explicit to avoid unintentional implicit conversions
+    explicit Engine(QWidget *mainwidget, const QString &player_color);
 
-    ~Engine();
+    // Clang-Tidy: Annotate this function with 'override' or (rarely) 'final'
+    ~Engine() override;
 
     void start(int level);
+
+public slots:
+
+    void engineMove();
 
 signals:
 
@@ -22,7 +28,9 @@ private:
     QProcess *stockfish;
     QString last_reply;
 
-    bool getReply(QString inReply);
+    bool getReply(const QString &inReply, int msecs = 5000);
+
+    void giveCommand(const QString &command);
 };
 
 

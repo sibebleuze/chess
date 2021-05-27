@@ -14,11 +14,15 @@ public:
 
     Field *operator[](std::pair<int, int> position);
 
+    Field *operator[](const QString &name);
+
     std::vector<Field *> getPromoting(const QString &color);
 
     static bool onBoard(std::pair<int, int> position, std::pair<int, int> increment);
 
     Field *getKingPosition(QString &color);
+
+    static std::map<QString, int> column_numbers();
 
 private:
     std::vector<Line *> lines; // will be vector of 8 Lines

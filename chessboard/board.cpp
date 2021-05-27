@@ -68,6 +68,25 @@ Field *Board::operator[](std::pair<int, int> position) {
     return (*this->lines[position.first])[position.second];
 }
 
+std::map<QString, int> Board::column_numbers() {
+    return {{"a", 0},
+            {"b", 1},
+            {"c", 2},
+            {"d", 3},
+            {"e", 4},
+            {"f", 5},
+            {"g", 6},
+            {"h", 7}}; // map of row names to line numbers
+}
+
+Field *Board::operator[](const QString &name) { // overload bracket operator, chess notation has fields a1 -> h8
+    // if e.g. name = 'a1',
+    int row = name.rightRef(1).toInt() - 1; // then row = 0
+    int column = Board::column_numbers()[name.left(1)]; // and column = 0
+    // and then this will return (a pointer to) the bottom left field of the board
+    return (*this)[std::make_pair(row, column)];
+}
+
 bool Board::onBoard(std::pair<int, int> position, std::pair<int, int> increment) {
     return 0 <= position.first + increment.first && position.first + increment.first < 8 &&
            0 <= position.second + increment.second && position.second + increment.second < 8;

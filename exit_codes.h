@@ -14,3 +14,5 @@ the ranges free for custom defined exit codes are:
 #define ONLINE_TYPE_MISSING 83
 // the program tried to start up stockfish, but failed
 #define STOCKFISH_FAILURE 84
+// the separator between the origin and the destination field in the history table is missing
+#define SEPARATOR_MISSING 85

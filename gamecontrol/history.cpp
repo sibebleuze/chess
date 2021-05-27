@@ -42,7 +42,10 @@ void History::setMove(const QString &color, const QString &move, bool add) {
     x = this->getItem(this->active_row, color);
     if (add) {
         if (color == "black") {
+            // a new row was initiated, in which the black field is empty, but since the addition needs to happen at a
+            // non empty field, the previous row must be taken
             x = this->getItem(this->active_row - 1, color);
+            // this problem does not occur for a white field, since the new row initiation does not happen there
         }
         x->setText(x->text() + move);
     } else {
@@ -89,4 +92,19 @@ void History::addRowIfNecessary() {
             this->table->setItem(this->active_row, i, x);
         }
     }
+}
+
+QStringList History::getHistory(QString color) {
+    QStringList l;
+    if (color == "white" || color == "black") {
+        for (int r = 0; r < this->table->rowCount(); r++) {
+            l << this->getItem(r, color)->text();
+        }
+    } else {
+        exit(COLOR_MISSING);
+    }
+    if (!l.isEmpty() && l.last() == " ") {
+        l.replace(l.lastIndexOf(" "), "  -  ");
+    }
+    return l;
 }

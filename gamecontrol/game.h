@@ -7,13 +7,14 @@
 #include "../chessboard/board.h"
 
 class Game : public QObject {
+Q_OBJECT
 public:
-    // justification of use of explicit:
     // Clang-Tidy: Constructors that are callable with a single argument must
     // be marked explicit to avoid unintentional implicit conversions
-    explicit Game(QWidget *mainwidget, int x_offset = 100, int y_offset = 500, int field_side = 50);
+    explicit Game(QWidget *mainwidget, const QString &player_color = "", int x_offset = 100, int y_offset = 500,
+                  int field_side = 50);
 
-    // justification of use of override: Clang-Tidy: Annotate this function with 'override' or (rarely) 'final'
+    // Clang-Tidy: Annotate this function with 'override' or (rarely) 'final'
     ~Game() override;
 
     void switchTurn();
@@ -24,11 +25,19 @@ public:
 
     static QString otherColor(const QString &color);
 
+    QStringList getHistory(QString color);
+
+    void executeExternal(const QString &origin, const QString &destination, const QString &promote_piece);
+
 public slots:
 
-    void fieldClicked();
+    void fieldClicked(bool control = false);
 
     void promote();
+
+signals:
+
+    void lockedTurn();
 
 private:
     Board *board;
@@ -36,6 +45,8 @@ private:
     QString turn = "white";
 
     QLabel *game_end;
+
+    QString locked;
 
     bool en_passant_possible = false;
     // these are not necessarily used and are thus not initialised in the constructor, nor deleted in the destructor

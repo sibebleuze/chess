@@ -1,6 +1,6 @@
 #include "game.h"
 
-Game::Game(QWidget *mainwidget, int x_offset, int y_offset, int field_side) {
+Game::Game(QWidget *mainwidget, const QString &player_color, int x_offset, int y_offset, int field_side) {
     this->board = new Board(mainwidget, x_offset, y_offset, field_side);
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
@@ -19,6 +19,14 @@ Game::Game(QWidget *mainwidget, int x_offset, int y_offset, int field_side) {
     this->game_end->setText("Game over. Close the program and restart it to start a new game.");
     this->game_end->hide();
     this->history = new History(mainwidget, x_offset, y_offset, field_side);
+    if (player_color != "") {
+        this->locked = Game::otherColor(player_color);
+    } else {
+        this->locked = player_color;
+    }
+    if (this->locked == "white") {
+        emit this->lockedTurn();
+    }
 }
 
 Game::~Game() {
@@ -27,9 +35,19 @@ Game::~Game() {
     delete this->history;
 }
 
-void Game::fieldClicked() {
+void Game::fieldClicked(bool control) {
+    if (this->turn == this->locked && !control) {
+        // while playing against the engine or an opponent on another device,
+        // the player should not be able to move the other players pieces
+        return;
+        // the control parameter is used for the Game to be able to simulate clicks that need to bypass this check,
+        // this is a slight misuse of the QPushButton::clicked() parameter 'checked' that this actually comes from,
+        // but since that isn't needed that anywhere, it can be used for this purpose here
+    }
     // the sender will always be a Field, and since we need to apply Field methods to it, it needs to be cast to a Field here
     auto *emitting = (Field *) (QObject::sender());
+//    qDebug() << emitting->getPiece() << ";" << emitting->getPieceColor() << ";" << emitting->getPosition() << ";" << emitting;
+//    qDebug() << this->promoting << ";" << this->selected << ";" << this->turn;
     if (this->promoting) {
         return; // while promoting, no other field can be interacted with
     } else if (!this->selected.empty()) {
@@ -41,6 +59,9 @@ void Game::fieldClicked() {
             i->changeSelection(); // keeping a list of selected fields is faster than going over all fields to see if they are selected or not
         }
         this->selected.clear();
+        if (!this->game_end->isVisible() && !this->promoting && this->turn == this->locked && !control) {
+            emit this->lockedTurn();
+        }
     } else if (emitting->getPieceColor() == this->turn) { // select all possible moves for this field
         std::vector<Field *> all_moves = this->getFieldMoves(emitting);
         std::vector<Field *> possible_moves;
@@ -138,6 +159,9 @@ void Game::promote() {
             txt += "+";
         }
         this->history->setMove(Game::otherColor(this->turn), txt, true);
+        if (!this->game_end->isVisible() && this->turn == this->locked) {
+            emit this->lockedTurn();
+        }
     }
 }
 
@@ -369,11 +393,17 @@ void Game::checkmate() {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             Field *f = (*this->board)[std::make_pair(i, j)];
-            f->clicked(); // not just this->get_field_moves, because some moves are calculated only after that
+            f->clicked(true); // not just this->get_field_moves, because some moves are calculated only after that
             if (!this->selected.empty()) {
                 moves_left = true;
             }
-            f->clicked(); // deselect the selected fields
+            f->clicked(true); // deselect the selected fields
+            if (moves_left) {
+                break;
+            }
+        }
+        if (moves_left) {
+            break;
         }
     }
     this->selected = sel;
@@ -543,4 +573,22 @@ QString Game::otherColor(const QString &color) {
         exit(COLOR_MISSING);
     }
     return c;
+}
+
+QStringList Game::getHistory(QString color) {
+    return this->history->getHistory(color);
+}
+
+void Game::executeExternal(const QString &origin, const QString &destination, const QString &promote_piece) {
+    // it is assumed that the input here is correct, so no checks are performed
+//    qDebug() << origin << destination << promote_piece;
+    (*this->board)[origin]->clicked(true);
+    (*this->board)[destination]->clicked(true);
+    if (promote_piece != "") {
+        for (auto f : this->board->getPromoting(this->turn)) {
+            if (Game::piece_to_letter()[f->getPiece()] == promote_piece) {
+                f->clicked(true);
+            }
+        }
+    }
 }

@@ -41,8 +41,9 @@ This program has a few custom exit codes:
   action is avoided by exiting
 * 83: a parameter that should distinguish between client and server mode is empty, since the program needs this
   information to continue, it just breaks off here
-* 84: while trying to start up stockfish as a command line process, an chessError occurred, since this may be due to
+* 84: while trying to start up stockfish as a command line process, an error occurred, since this may be due to
   stockfish being absent, the program does not retry but exits instead
+* 85: the separator between the origin and the destination field in the history table is missing for one or more moves
 
 These situations are all impossible to reach as far as I know (except for the one with stockfish), but who knows where I
 might have made a mistake. If any of the above situations occur, the program will exit. Please do let me know if this
