@@ -38,10 +38,11 @@ void Game::fieldClicked(bool control) {
         // the player should not be able to move the other players pieces
         return;
         // the control parameter is used for the Game to be able to simulate clicks that need to bypass this check,
-        // this is a slight misuse of the QPushButton::clicked() parameter 'checked' that this actually comes from,
-        // but since that isn't needed that anywhere, it can be used for this purpose here
+        // this is a slight misuse of the QPushButton::clicked() parameter 'checked' where this actually comes from,
+        // but since that isn't needed anywhere, it can be used for this purpose here
     }
-    // the sender will always be a Field, and since we need to apply Field methods to it, it needs to be cast to a Field here
+    // the sender will always be a Field, and since we need to apply Field methods to it,
+    // it needs to be cast to a Field here
     auto *emitting = (Field *) (QObject::sender());
 //    qDebug() << emitting->getPiece() << ";" << emitting->getPieceColor() << ";" << emitting->getPosition() << ";" << emitting;
 //    qDebug() << this->promoting << ";" << this->selected << ";" << this->turn;
@@ -439,14 +440,14 @@ QString Game::reversibleAlgebraic(Field *origin,
                                   Field *destination) { // calculates reversible algebraic notation of move from origin to destination field
     std::pair<int, int> ori_pos = origin->getPosition();
     std::pair<int, int> dest_pos = destination->getPosition();
-    QString rev_alg = Game::piece_to_letter()[origin->getPiece()] + Field::row_names()[ori_pos.second] +
+    QString rev_alg = Game::piece_to_letter()[origin->getPiece()] + Field::column_names()[ori_pos.second] +
                       QString::number(ori_pos.first + 1);
     if (destination->getPiece() != "") {
         rev_alg += " x ";
     } else {
         rev_alg += " - ";
     }
-    rev_alg += Game::piece_to_letter()[destination->getPiece()] + Field::row_names()[dest_pos.second] +
+    rev_alg += Game::piece_to_letter()[destination->getPiece()] + Field::column_names()[dest_pos.second] +
                QString::number(dest_pos.first + 1);
     return rev_alg;
 }
@@ -573,7 +574,7 @@ QString Game::otherColor(const QString &color) {
 }
 
 QStringList Game::getHistory(QString color) {
-    return this->history->getHistory(color);
+    return this->history->getHistory(std::move(color));
 }
 
 void Game::executeExternal(const QString &origin, const QString &destination, const QString &promote_piece) {

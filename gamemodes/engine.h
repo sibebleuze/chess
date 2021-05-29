@@ -28,7 +28,7 @@ private:
     QProcess *stockfish;
     QString last_reply;
 
-    bool getReply(const QString &inReply, int msecs = 5000);
+    bool getReply(const QString &inReply, int cycles = 50);
 
     void giveCommand(const QString &command);
 };

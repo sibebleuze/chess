@@ -3,9 +3,10 @@
 
 #include <QIcon>
 #include <QPushButton>
+#include <QApplication>
 #include <algorithm>
 #include <map>
-#include <QApplication>
+#include <utility>
 #include <QDebug> // TODO: remove QDebug from final project
 #include "../exit_codes.h"
 #include "../nvwa-1.1/nvwa/debug_new.h" // TODO: remove nvwa from final project
@@ -13,7 +14,7 @@
 class Field : public QPushButton {
 public:
     Field(QWidget *mainwidget,
-          int linenumber, int rownumber, // position of the field on the board (8x8)
+          int rownumber, int linenumber, // position of the field on the board (8x8)
           int x_offset, int y_offset, // x and y coordinate of bottom left corner of board (pixels)
           int field_side); // side length of a field
 
@@ -29,7 +30,7 @@ public:
 
     bool isSelected() const;
 
-    static std::map<int, QString> row_names();
+    static std::map<int, QString> column_names();
 
     static std::map<int, std::vector<QString>> field_colors();
 

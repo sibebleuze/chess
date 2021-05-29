@@ -1,8 +1,6 @@
 #ifndef CHESS_GAME_H
 #define CHESS_GAME_H
 
-#include <QTableWidget>
-#include <QHeaderView>
 #include "history.h"
 #include "../chessboard/board.h"
 

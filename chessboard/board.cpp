@@ -28,7 +28,7 @@ Board::Board(QWidget *mainwidget, int x_offset, int y_offset, int field_side) {
                            y_offset - int(7 / 10.0 * field_side) - field_side * (2 * i + j),
                            field_side / 2,
                            field_side / 2);
-            q->setText(Field::row_names()[2 * i + j]);
+            q->setText(Field::column_names()[2 * i + j]);
             r->setText(QString::number(2 * i + j + 1));
             fnt = q->font();
             fnt.setPixelSize(field_side / 3);
@@ -76,13 +76,13 @@ std::map<QString, int> Board::column_numbers() {
             {"e", 4},
             {"f", 5},
             {"g", 6},
-            {"h", 7}}; // map of row names to line numbers
+            {"h", 7}}; // map of rownames to linenumbers
 }
 
 Field *Board::operator[](const QString &name) { // overload bracket operator, chess notation has fields a1 -> h8
-    // if e.g. name = 'a1',
-    int row = name.rightRef(1).toInt() - 1; // then row = 0
-    int column = Board::column_numbers()[name.left(1)]; // and column = 0
+    // if e.g. name = 'd6',
+    int row = name.rightRef(1).toInt() - 1; // then row = 5
+    int column = Board::column_numbers()[name.left(1)]; // and column = 3
     // and then this will return (a pointer to) the bottom left field of the board
     return (*this)[std::make_pair(row, column)];
 }

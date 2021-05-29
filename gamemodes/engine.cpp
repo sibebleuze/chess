@@ -20,52 +20,60 @@ Engine::~Engine() {
 
 void Engine::start(int level) {
     QApplication::processEvents();
+    bool started = false;
     this->stockfish->start();
-    if (!this->stockfish->waitForStarted(5000)) {
+    for (int i = 0; i < 300; i++) {
+        QApplication::processEvents();
+        if (this->stockfish->waitForStarted(100)) {
+            started = true;
+            break;
+        }
+    }
+    if (!started) {
         emit this->chessError(STOCKFISH_FAILURE);
         return;
     }
-    this->stockfish->waitForReadyRead(5000);
-    while (this->stockfish->canReadLine()) {
-        this->stockfish->readLine();
+    if (!this->getReply("Stockfish", 300)) {
+        return;
     }
     this->giveCommand("uci");
-    if (!this->getReply("uciok")) {
+    if (!this->getReply("uciok", 300)) {
         return; // stockfish must send "uciok" after "uci" command
     }
     // 'Skill Level' ranges from 0 to 20, level 4 is already quite hard, so easy=0, medium=4, hard=8
     this->giveCommand("setoption name Skill Level value " + QString::number(4 * level));
     this->giveCommand("isready");
-    if (!this->getReply("readyok")) {
+    if (!this->getReply("readyok", 300)) {
         return; // stockfish must send "readyok" after "isready" command
     }
 }
 
-bool Engine::getReply(const QString &inReply, int msecs) {
+bool Engine::getReply(const QString &inReply, int cycles) {
     do {
         QApplication::processEvents();
-        if (!this->stockfish->canReadLine()) {
-            this->stockfish->waitForReadyRead(msecs);
+        if (this->stockfish->canReadLine()) {
+            this->last_reply = QString::fromLocal8Bit(this->stockfish->readLine()).trimmed();
+        } else {
+            this->stockfish->waitForReadyRead(100);
+            cycles -= 1;
         }
-        if (!this->stockfish->canReadLine()) {
-            emit this->chessError(STOCKFISH_FAILURE);
-            return false;
-        }
-        this->last_reply = QString::fromLocal8Bit(this->stockfish->readLine()).trimmed();
-    } while (!this->last_reply.contains(inReply));
-    return true;
+    } while (!this->last_reply.contains(inReply) && cycles > 0);
+    if (this->last_reply.contains(inReply)) {
+        return true;
+    } else {
+        emit this->chessError(STOCKFISH_FAILURE);
+        return false;
+    }
 }
 
 void Engine::engineMove() {
     QApplication::processEvents();
-//    QStringList history = this->g->getHistory();
     QStringList white_history = this->g->getHistory("white");
     QStringList black_history = this->g->getHistory("black");
     if (black_history.length() == white_history.length() - 1) {
-        black_history.push_back("  -  ");
+        black_history.push_back("  -  "); // both need to be equal length to not crash the following loop
     }
     QString moves = "";
-//    qDebug() << history;
     for (int i = 0; i < white_history.length(); i++) {
         for (int j = 0; j < 2; j++) {
             QString histitem;
@@ -121,11 +129,12 @@ void Engine::engineMove() {
     } else {
         this->giveCommand("position startpos moves " + moves);
     }
-    this->giveCommand("go movetime 5000"); // stockfish gets 5 seconds to think;
-    if (!this->getReply("bestmove", 5100)) {
+    this->giveCommand("go movetime 5000"); // stockfish gets 5 seconds to think
+    if (!this->getReply("bestmove", 60)) { // and 1 second after that to print the answer
         return;
     }
     QString bestmove = this->last_reply.split(" ")[1];
+    this->last_reply = ""; // reset last reply so it doesn't try to make the same move twice
     QString origin = bestmove.left(2);
     QString destination = bestmove.mid(2, 2);
     QString promote_piece = "";

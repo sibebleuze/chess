@@ -1,9 +1,9 @@
 #include "line.h"
 
-Line::Line(QWidget *mainwidget, int linenumber, int x_offset, int y_offset, int field_side) {
-    for (int rownumber = 0; rownumber < 8; rownumber++) {
+Line::Line(QWidget *mainwidget, int rownumber, int x_offset, int y_offset, int field_side) {
+    for (int linenumber = 0; linenumber < 8; linenumber++) {
         Field *f;
-        f = new Field(mainwidget, linenumber, rownumber, x_offset, y_offset, field_side);
+        f = new Field(mainwidget, rownumber, linenumber, x_offset, y_offset, field_side);
         this->fields.push_back(f);
     }
 }
