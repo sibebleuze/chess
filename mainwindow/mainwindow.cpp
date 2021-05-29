@@ -183,6 +183,11 @@ void MainWindow::levelChoice() {
     this->e = new Engine(this, color);
     QObject::connect(this->e, &Engine::chessError, this, &MainWindow::errorHandler);
     this->e->start(lvl);
+    if (color == "black") {
+        // first engine move needs to be triggered 'manually' here,
+        // all others will be triggered by the switching of the turn during the game
+        this->e->engineMove();
+    }
 }
 
 void MainWindow::onlineSubmit() {

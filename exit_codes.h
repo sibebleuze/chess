@@ -16,3 +16,5 @@ the ranges free for custom defined exit codes are:
 #define STOCKFISH_FAILURE 84
 // the separator between the origin and the destination field in the history table is missing
 #define SEPARATOR_MISSING 85
+// the engine has been ordered to provide a move when the game has already ended
+#define MOVE_AFTER_GAME_END 86

@@ -24,9 +24,6 @@ Game::Game(QWidget *mainwidget, const QString &player_color, int x_offset, int y
     } else {
         this->locked = player_color;
     }
-    if (this->locked == "white") {
-        emit this->lockedTurn();
-    }
 }
 
 Game::~Game() {

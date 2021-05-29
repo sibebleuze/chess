@@ -33,7 +33,8 @@ void Engine::start(int level) {
     if (!this->getReply("uciok")) {
         return; // stockfish must send "uciok" after "uci" command
     }
-    this->giveCommand("setoption name Skill Level value " + QString::number(2 * level + 2));
+    // 'Skill Level' ranges from 0 to 20, level 4 is already quite hard, so easy=0, medium=4, hard=8
+    this->giveCommand("setoption name Skill Level value " + QString::number(4 * level));
     this->giveCommand("isready");
     if (!this->getReply("readyok")) {
         return; // stockfish must send "readyok" after "isready" command
@@ -60,6 +61,9 @@ void Engine::engineMove() {
 //    QStringList history = this->g->getHistory();
     QStringList white_history = this->g->getHistory("white");
     QStringList black_history = this->g->getHistory("black");
+    if (black_history.length() == white_history.length() - 1) {
+        black_history.push_back("  -  ");
+    }
     QString moves = "";
 //    qDebug() << history;
     for (int i = 0; i < white_history.length(); i++) {
@@ -72,6 +76,9 @@ void Engine::engineMove() {
             }
             if (histitem.contains("+")) {
                 histitem.chop(1);
+            } else if (histitem.contains("#")) {
+                // not breaking off here will result in a "bestmove (none)" answer from stockfish
+                emit this->chessError(MOVE_AFTER_GAME_END);
             }
             if (histitem.contains(" e.p.")) {
                 histitem.chop(5);

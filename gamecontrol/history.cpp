@@ -104,7 +104,7 @@ QStringList History::getHistory(QString color) {
         exit(COLOR_MISSING);
     }
     if (!l.isEmpty() && l.last() == " ") {
-        l.replace(l.lastIndexOf(" "), "  -  ");
+        l.removeLast();
     }
     return l;
 }
