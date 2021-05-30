@@ -12,9 +12,11 @@ the ranges free for custom defined exit codes are:
 #define COLOR_MISSING 82
 // while starting up a client or server, the parameter that distinguishes between the two is empty
 #define ONLINE_TYPE_MISSING 83
-// the program tried to start up stockfish, but failed
-#define STOCKFISH_FAILURE 84
+// the program tried to start up stockfish, but failed, probably because the command could not be found
+#define STOCKFISH_NOT_FOUND 84
+// stockfish didn't respond in time
+#define STOCKFISH_NO_RESPONSE 85
 // the separator between the origin and the destination field in the history table is missing
-#define SEPARATOR_MISSING 85
+#define SEPARATOR_MISSING 86
 // the engine has been ordered to provide a move when the game has already ended
-#define MOVE_AFTER_GAME_END 86
+#define MOVE_AFTER_GAME_END 87

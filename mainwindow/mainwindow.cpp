@@ -98,6 +98,7 @@ void MainWindow::modeChoice() {
     QString mode = emitting->objectName();
     if (mode == "localpvp") {
         this->g = new Game(this);
+        QObject::connect(g, &Game::chessError, this, &MainWindow::errorHandler);
     } else if (mode == "localpve") {
         for (int i = 0; i < 3; i++) {
             QString whitelvltxt = MainWindow::lvltxts()[i] + "\nPlay as white";
@@ -217,7 +218,8 @@ void MainWindow::onlineSubmit() {
         // this goes to parameter *mainwindow, serverport goes to parameter port
 //        this->s = new Server(this, serverport);
     } else {
-        exit(ONLINE_TYPE_MISSING);
+        emit this->chessError(ONLINE_TYPE_MISSING);
+        return;
     }
 }
 

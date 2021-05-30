@@ -64,7 +64,9 @@ QTableWidgetItem *History::getItem(int row, const QString &color) {
     } else if (color == "black") {
         col = 1;
     } else {
-        exit(COLOR_MISSING); // the input color of this function will be Game::turn
+        emit this->chessError(COLOR_MISSING); // the input color of this function will be Game::turn
+        // not sure if returning a nullpointer here will completely exit immediately, but it's the best I can do
+        return nullptr;
     }
     return this->table->item(row, col);
 }
@@ -94,14 +96,16 @@ void History::addRowIfNecessary() {
     }
 }
 
-QStringList History::getHistory(QString color) {
+QStringList History::getHistory(const QString &color) {
     QStringList l;
     if (color == "white" || color == "black") {
         for (int r = 0; r < this->table->rowCount(); r++) {
             l << this->getItem(r, color)->text();
         }
     } else {
-        exit(COLOR_MISSING);
+        emit this->chessError(COLOR_MISSING);
+        // not sure if returning an empty list here will completely exit immediately, but it's the best I can do
+        return QStringList();
     }
     if (!l.isEmpty() && l.last() == " ") {
         l.removeLast();

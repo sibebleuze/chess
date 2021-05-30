@@ -6,7 +6,8 @@
 #include <QDebug> // TODO: remove QDebug from final project
 #include "../exit_codes.h"
 
-class History {
+class History : public QObject {
+Q_OBJECT
 public:
     History(QWidget *mainwidget, int x_offset, int y_offset, int field_side);
 
@@ -18,7 +19,11 @@ public:
 
     void setResult(const QString &result);
 
-    QStringList getHistory(QString color = "");
+    QStringList getHistory(const QString &color = "");
+
+signals:
+
+    void chessError(int exitcode);
 
 private:
     QTableWidget *table;

@@ -19,6 +19,8 @@ public slots:
 
     void engineMove();
 
+    void errorHandler(int exitcode);
+
 signals:
 
     void chessError(int exitcode);

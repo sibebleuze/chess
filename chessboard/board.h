@@ -6,7 +6,8 @@
 
 #include "line.h"
 
-class Board {
+class Board : public QObject {
+Q_OBJECT
 public:
     Board(QWidget *mainwidget, int x_offset, int y_offset, int field_side);
 
@@ -23,6 +24,10 @@ public:
     Field *getKingPosition(QString &color);
 
     static std::map<QString, int> column_numbers();
+
+signals:
+
+    void chessError(int exitcode);
 
 private:
     std::vector<Line *> lines; // will be vector of 8 Lines

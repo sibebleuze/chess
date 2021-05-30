@@ -21,9 +21,9 @@ public:
 
     static std::map<QString, QString> piece_to_letter();
 
-    static QString otherColor(const QString &color);
+    QString otherColor(const QString &color);
 
-    QStringList getHistory(QString color);
+    QStringList getHistory(const QString &color);
 
     void executeExternal(const QString &origin, const QString &destination, const QString &promote_piece);
 
@@ -33,9 +33,13 @@ public slots:
 
     void promote();
 
+    void errorHandler(int exitcode);
+
 signals:
 
     void lockedTurn();
+
+    void chessError(int exitcode);
 
 private:
     Board *board;

@@ -7,7 +7,7 @@ Windows instructions:
 Unzip the file nvwa-1.1.zip in the folder where the zip is located. Load the CMake project (your IDE probably has an
 option for this). Build the project. If you are working in the command line, follow the steps below, where you replace '
 cmake' and 'make' with the corresponding executables (or run them as commands if their executables are included in your
-PATH variable).
+system path).
 
 Linux instructions:
 
@@ -29,9 +29,11 @@ is tested to work with Stockfish 13. Stockfish is ditributed under the
 
 The program consists of a basic chess game, only mouse clicks are supported to interact with the program. On the right
 side of the screen next to the board is a live report of the moves played
-in [reversible algebraic notation](https://en.wikipedia.org/wiki/Chess_notation).
+in [reversible algebraic notation](https://en.wikipedia.org/wiki/Chess_notation). You can play against a human opponent
+using the same computer or play against stockfish on 3 different levels.
 
-This program has a few custom exit codes:
+This program has a few custom exit codes (passed on through signals and slots by Qt until the main application is
+reached and the program exits):
 
 * 80: an empty field somehow managed to get moves from the move calculator, since this is impossible, the game doesn't
   know how to continue and exits to prevent further unexpected behaviour
@@ -41,11 +43,13 @@ This program has a few custom exit codes:
   action is avoided by exiting
 * 83: a parameter that should distinguish between client and server mode is empty, since the program needs this
   information to continue, it just breaks off here
-* 84: while trying to start up stockfish as a command line process, an error occurred, since this may be due to
+* 84: while trying to start up stockfish as a command line process, an error occurred, since this is probably due to
   stockfish being absent, the program does not retry but exits instead
-* 85: the separator between the origin and the destination field in the history table is missing for one or more moves
-* 86: the stockfish engine was ordered to play a move after the game has finished, it is not supposed to be
+* 85: stockfish normally gets 30 seconds to respond after each command and didn't respond in time here
+* 86: the separator between the origin and the destination field in the history table is missing for one or more moves
+* 87: the stockfish engine was ordered to play a move after the game has finished, it is not supposed to be
 
-These situations are all impossible to reach as far as I know (except for the one with stockfish), but who knows where I
-might have made a mistake. If any of the above situations occur, the program will exit. Please do let me know if this
-happens (by submitting an issue on the [Github repo](https://github.com/sibebleuze/chess)).
+These situations are all impossible to reach as far as I know (except for 84 and maybe 85 with stockfish), but who knows
+where I might have made a mistake. If any of the above situations occur, the program will exit. Please do let me know if
+this happens (by submitting an issue on the [Github repo](https://github.com/sibebleuze/chess)). Keep in mind that
+problems with stockfish are especially hard to fix, since the stockfish output is not reproducible.

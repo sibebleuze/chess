@@ -2,6 +2,7 @@
 
 Game::Game(QWidget *mainwidget, const QString &player_color, int x_offset, int y_offset, int field_side) {
     this->board = new Board(mainwidget, x_offset, y_offset, field_side);
+    QObject::connect(this->board, &Board::chessError, this, &Game::errorHandler);
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             QObject::connect((*this->board)[std::make_pair(i, j)], &QPushButton::clicked, this, &Game::fieldClicked);
@@ -19,6 +20,7 @@ Game::Game(QWidget *mainwidget, const QString &player_color, int x_offset, int y
     this->game_end->setText("Game over. Close the program and restart it to start a new game.");
     this->game_end->hide();
     this->history = new History(mainwidget, x_offset, y_offset, field_side);
+    QObject::connect(this->history, &History::chessError, this, &Game::errorHandler);
     if (player_color != "") {
         this->locked = Game::otherColor(player_color);
     } else {
@@ -77,7 +79,10 @@ void Game::fieldClicked(bool control) {
                 } else if (pc == "black") {
                     king_position = this->black_king_position;
                 } else { // this would mean an empty field has possible moves, this should not ever be possible
-                    exit(EMPTY_FIELD_MOVE); // if it does happen the program should crash instead of exhibiting who knows what unpredictable behaviour
+                    // if it does happen the program should crash instead of
+                    // exhibiting who knows what unpredictable behaviour
+                    emit this->chessError(EMPTY_FIELD_MOVE);
+                    return;
                 }
             }
             if (!this->underAttack(king_position, pc, mv)) {
@@ -96,7 +101,8 @@ void Game::fieldClicked(bool control) {
                         king_moved = this->black_king_moved;
                         row = 7;
                     } else {
-                        exit(COLOR_MISSING);
+                        emit this->chessError(COLOR_MISSING);
+                        return;
                     }
                     if (!this->underAttack(king_pos, this->turn)) {
                         if (!king_moved) {
@@ -140,7 +146,8 @@ void Game::promote() {
         promoting_fields = this->board->getPromoting("black");
         king_position = this->white_king_position;
     } else {
-        exit(COLOR_MISSING);
+        emit this->chessError(COLOR_MISSING);
+        return;
     }
     if (std::find(promoting_fields.begin(), promoting_fields.end(), emitting) != promoting_fields.end()) {
         this->promoting_field->changeIcon(emitting->getPiece(), emitting->getPieceColor(),
@@ -234,7 +241,9 @@ std::vector<Field *> Game::getKingMoves(Field *invoking, std::pair<int, int> pos
         rook_right_moved = this->black_rook_right_moved;
         row = 7;
     } else {
-        exit(COLOR_MISSING);
+        emit this->chessError(COLOR_MISSING);
+        // not sure if returning an empty vector here will completely exit immediately, but it's the best I can do
+        return std::vector<Field *>();
     }
     if (!king_moved) {
         std::pair<int, int> pos1 = {row, 3};
@@ -275,7 +284,9 @@ std::vector<Field *> Game::getPawnMoves(Field *invoking, std::pair<int, int> pos
                         {-1, -1}};
         en_passant = {1, 0};
     } else {
-        exit(COLOR_MISSING);
+        emit this->chessError(COLOR_MISSING);
+        // not sure if returning an empty vector here will completely exit immediately, but it's the best I can do
+        return std::vector<Field *>();
     }
     if (Board::onBoard(position, one_forward)) {
         Field *f = (*this->board)[std::make_pair(position.first + one_forward.first, position.second)];
@@ -418,7 +429,9 @@ void Game::checkmate() {
         king_position = this->black_king_position;
         result_notation = "1 - 0";
     } else { // this would mean an empty field has possible moves, this should not ever be possible
-        exit(COLOR_MISSING); // if it does happen the program should crash instead of exhibiting who knows what unpredictable behaviour
+        // if it does happen the program should crash instead of exhibiting who knows what unpredictable behaviour
+        emit this->chessError(COLOR_MISSING);
+        return;
     }
     if (!this->underAttack(king_position, this->turn)) { // no moves left but the king is not in check: stalemate
         result_notation = "1/2 - 1/2";
@@ -477,7 +490,8 @@ void Game::execute(Field *destination) {
             last_row = 0;
             two_forward = {4, 6};
         } else {
-            exit(COLOR_MISSING);
+            emit this->chessError(COLOR_MISSING);
+            return;
         }
         std::pair<int, int> p1 = destination->getPosition();
         Field *epv = this->en_passant_vulnerable;
@@ -511,7 +525,8 @@ void Game::execute(Field *destination) {
             this->black_king_position = destination->getPosition(); // we need to keep track of the king position for checking if it is in check
             this->black_king_moved = true; // we need to keep track of the king movement for the castling requirements
         } else {
-            exit(COLOR_MISSING);
+            emit this->chessError(COLOR_MISSING);
+            return;
         }
         std::pair<int, int> empos = destination->getPosition();
         if (std::abs(origin->getPosition().second - empos.second) == 2) {
@@ -546,7 +561,8 @@ void Game::execute(Field *destination) {
     } else if (this->turn == "black") {
         king_position = this->white_king_position;
     } else {
-        exit(COLOR_MISSING);
+        emit this->chessError(COLOR_MISSING);
+        return;
     }
     if (!this->promoting) {
         this->switchTurn(); // turn is switched here, everything below this uses the new turn color
@@ -568,13 +584,17 @@ QString Game::otherColor(const QString &color) {
     } else if (color == "black") {
         c = "white";
     } else {
-        exit(COLOR_MISSING);
+        emit this->chessError(COLOR_MISSING);
+        // not sure if returning the input value here will completely exit immediately, but it's the best I can do
+        // an empty string was also possible, but that might just trigger more errors elsewhere,
+        // which would make it even harder to debug if this occurs
+        return color;
     }
     return c;
 }
 
-QStringList Game::getHistory(QString color) {
-    return this->history->getHistory(std::move(color));
+QStringList Game::getHistory(const QString &color) {
+    return this->history->getHistory(color);
 }
 
 void Game::executeExternal(const QString &origin, const QString &destination, const QString &promote_piece) {
@@ -589,4 +609,8 @@ void Game::executeExternal(const QString &origin, const QString &destination, co
             }
         }
     }
+}
+
+void Game::errorHandler(int exitcode) {
+    emit this->chessError(exitcode);
 }

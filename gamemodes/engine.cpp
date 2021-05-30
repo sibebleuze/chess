@@ -6,6 +6,7 @@ Engine::Engine(QWidget *mainwidget, const QString &player_color) {
     this->stockfish->setReadChannel(QProcess::StandardOutput);
     this->g = new Game(mainwidget, player_color);
     QObject::connect(g, &Game::lockedTurn, this, &Engine::engineMove);
+    QObject::connect(g, &Game::chessError, this, &Engine::errorHandler);
 }
 
 Engine::~Engine() {
@@ -30,21 +31,21 @@ void Engine::start(int level) {
         }
     }
     if (!started) {
-        emit this->chessError(STOCKFISH_FAILURE);
+        emit this->chessError(STOCKFISH_NOT_FOUND);
         return;
     }
     if (!this->getReply("Stockfish", 300)) {
-        return;
+        return; // stockfish gets 30 seconds to respond after startup command was issued
     }
     this->giveCommand("uci");
     if (!this->getReply("uciok", 300)) {
-        return; // stockfish must send "uciok" after "uci" command
+        return; // stockfish must send "uciok" after "uci" command, it gets 30 seconds to do so
     }
     // 'Skill Level' ranges from 0 to 20, level 4 is already quite hard, so easy=0, medium=4, hard=8
     this->giveCommand("setoption name Skill Level value " + QString::number(4 * level));
     this->giveCommand("isready");
     if (!this->getReply("readyok", 300)) {
-        return; // stockfish must send "readyok" after "isready" command
+        return; // stockfish must send "readyok" after "isready" command, it gets 30 seconds to do so
     }
 }
 
@@ -61,7 +62,7 @@ bool Engine::getReply(const QString &inReply, int cycles) {
     if (this->last_reply.contains(inReply)) {
         return true;
     } else {
-        emit this->chessError(STOCKFISH_FAILURE);
+        emit this->chessError(STOCKFISH_NO_RESPONSE);
         return false;
     }
 }
@@ -130,7 +131,7 @@ void Engine::engineMove() {
         this->giveCommand("position startpos moves " + moves);
     }
     this->giveCommand("go movetime 5000"); // stockfish gets 5 seconds to think
-    if (!this->getReply("bestmove", 60)) { // and 1 second after that to print the answer
+    if (!this->getReply("bestmove", 350)) { // and 30 seconds after that to print the answer
         return;
     }
     QString bestmove = this->last_reply.split(" ")[1];
@@ -146,4 +147,8 @@ void Engine::engineMove() {
 
 void Engine::giveCommand(const QString &command) {
     this->stockfish->write((command + "\n").toLocal8Bit());
+}
+
+void Engine::errorHandler(int exitcode) {
+    emit this->chessError(exitcode);
 }

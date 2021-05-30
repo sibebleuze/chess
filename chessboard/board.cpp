@@ -101,7 +101,9 @@ Field *Board::getKingPosition(QString &color) {
             }
         }
     }
-    exit(KING_MISSING);
+    emit this->chessError(KING_MISSING);
+    // not sure if returning a nullpointer here will completely exit immediately, but it's the best I can do
+    return nullptr;
 }
 
 std::vector<Field *> Board::getPromoting(const QString &color) {
@@ -111,7 +113,9 @@ std::vector<Field *> Board::getPromoting(const QString &color) {
     } else if (color == "black") {
         prom = this->black_promoting;
     } else {
-        exit(COLOR_MISSING);
+        emit this->chessError(COLOR_MISSING);
+        // not sure if returning an empty vector here will completely exit immediately, but it's the best I can do
+        return std::vector<Field *>();
     }
     return prom;
 }
