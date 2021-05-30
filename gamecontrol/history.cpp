@@ -50,9 +50,7 @@ void History::setMove(const QString &color, const QString &move, bool add) {
         x->setText(x->text() + move);
     } else {
         x->setText(move);
-        if (color == "black") {
-            this->active_row += 1;
-        }
+        this->active_row += (color == "black") ? 1 : 0;
     }
     this->table->scrollToItem(x, QAbstractItemView::PositionAtBottom);
 }

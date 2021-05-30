@@ -21,11 +21,7 @@ Game::Game(QWidget *mainwidget, const QString &player_color, int x_offset, int y
     this->game_end->hide();
     this->history = new History(mainwidget, x_offset, y_offset, field_side);
     QObject::connect(this->history, &History::chessError, this, &Game::errorHandler);
-    if (player_color != "") {
-        this->locked = Game::otherColor(player_color);
-    } else {
-        this->locked = player_color;
-    }
+    this->locked = (player_color == "") ? player_color : Game::otherColor(player_color);
 }
 
 Game::~Game() {
@@ -178,12 +174,14 @@ std::vector<Field *> Game::getStraightMoves(Field *invoking, std::pair<int, int>
         Field *f;
         if (Board::onBoard(position, i)) {
             do {
-                f = (*this->board)[std::make_pair(position.first + j * i.first, position.second + j * i.second)];
+                f = (*this->board)[std::make_pair(position.first + j * i.first,
+                                                  position.second + j * i.second)];
                 if (f->getPieceColor() != invoking->getPieceColor()) { // can't 'capture' own pieces
                     possible_moves.push_back(f);
                 }
                 j += 1;
-            } while (f->getPiece() == "" && Board::onBoard(position, std::make_pair(j * i.first, j * i.second)));
+            } while (f->getPiece() == "" &&
+                     Board::onBoard(position, std::make_pair(j * i.first, j * i.second)));
         }
     }
     return possible_moves;
@@ -246,16 +244,18 @@ std::vector<Field *> Game::getKingMoves(Field *invoking, std::pair<int, int> pos
         return std::vector<Field *>();
     }
     if (!king_moved) {
-        std::pair<int, int> pos1 = {row, 3};
+        std::pair<int, int> pos1 = {row, 1};
         std::pair<int, int> pos2 = {row, 2};
-        std::pair<int, int> pos3 = {row, 5};
-        std::pair<int, int> pos4 = {row, 6};
-        if (!rook_left_moved && (*this->board)[pos1]->getPiece() == "" && (*this->board)[pos2]->getPiece() == "") {
+        std::pair<int, int> pos3 = {row, 3};
+        std::pair<int, int> pos5 = {row, 5};
+        std::pair<int, int> pos6 = {row, 6};
+        if (!rook_left_moved && (*this->board)[pos1]->getPiece() == "" && (*this->board)[pos2]->getPiece() == "" &&
+            (*this->board)[pos3]->getPiece() == "") {
             Field *f = (*this->board)[pos2];
             possible_moves.push_back(f);
         }
-        if (!rook_right_moved && (*this->board)[pos3]->getPiece() == "" && (*this->board)[pos4]->getPiece() == "") {
-            Field *f = (*this->board)[pos4];
+        if (!rook_right_moved && (*this->board)[pos5]->getPiece() == "" && (*this->board)[pos6]->getPiece() == "") {
+            Field *f = (*this->board)[pos6];
             possible_moves.push_back(f);
         }
     }
@@ -362,8 +362,8 @@ void Game::switchTurn() {
 bool Game::underAttack(std::pair<int, int> position, QString &color, std::vector<Field *> move) {
     Field *from, *to;
     std::pair<QString, QString> to_field; // needed to assure no piece get destroyed in this process
-    if (!move.empty() &&
-        move.size() == 2) { // quick and dirty way to perform functions below on the field as if this move was made
+    if (!move.empty() && move.size() == 2) {
+        // quick and dirty way to perform functions below on the field as if this move was made
         from = move[0];
         to = move[1];
         to_field = std::make_pair(to->getPiece(), to->getPieceColor());
@@ -371,12 +371,10 @@ bool Game::underAttack(std::pair<int, int> position, QString &color, std::vector
                        to->isSelected());
         from->changeIcon("", "", from->isSelected());
     }
-    Field *attacked;
-    if (position.first == -1 && position.second == -1) { // if the king moved, we need to find the position here
-        attacked = this->board->getKingPosition(color);
-    } else { // otherwise we just assume the correct position was given in the function arguments
-        attacked = (*this->board)[position];
-    }
+    // if the king moved, we need to find the position here,
+    // otherwise we just assume the correct position was given in the function arguments
+    Field *attacked = (position.first == -1 && position.second == -1) ? this->board->getKingPosition(color) :
+                      (*this->board)[position];
     std::vector<Field *> enemy_moves;
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
@@ -455,11 +453,7 @@ QString Game::reversibleAlgebraic(Field *origin,
     std::pair<int, int> dest_pos = destination->getPosition();
     QString rev_alg = Game::piece_to_letter()[origin->getPiece()] + Field::column_names()[ori_pos.second] +
                       QString::number(ori_pos.first + 1);
-    if (destination->getPiece() != "") {
-        rev_alg += " x ";
-    } else {
-        rev_alg += " - ";
-    }
+    rev_alg += (destination->getPiece() == "") ? " - " : " x ";
     rev_alg += Game::piece_to_letter()[destination->getPiece()] + Field::column_names()[dest_pos.second] +
                QString::number(dest_pos.first + 1);
     return rev_alg;
@@ -543,8 +537,8 @@ void Game::execute(Field *destination) {
             rook_to->changeIcon(rook_from->getPiece(), rook_from->getPieceColor(), rook_to->isSelected());
             rook_from->changeIcon("", "", rook_from->isSelected());
         }
-    } else if (destination->getPiece() ==
-               "rook") { // we need to keep track of the rook movement for the castling requirements
+    } else if (destination->getPiece() == "rook") {
+        // we need to keep track of the rook movement for the castling requirements
         if (origin->getPosition() == std::make_pair(0, 0)) {
             this->white_rook_left_moved = true;
         } else if (origin->getPosition() == std::make_pair(0, 7)) {

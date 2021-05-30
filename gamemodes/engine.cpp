@@ -77,12 +77,7 @@ void Engine::engineMove() {
     QString moves = "";
     for (int i = 0; i < white_history.length(); i++) {
         for (int j = 0; j < 2; j++) {
-            QString histitem;
-            if (j == 0) {
-                histitem = white_history.at(i);
-            } else {
-                histitem = black_history.at(i);
-            }
+            QString histitem = (j == 0) ? white_history.at(i) : black_history.at(i);
             if (histitem.contains("+")) {
                 histitem.chop(1);
             } else if (histitem.contains("#")) {
@@ -116,7 +111,7 @@ void Engine::engineMove() {
                 }
             }
             for (auto field : cleanup) {
-                if (field.length() == 3) {
+                if (field.left(1).isUpper()) {
                     field.remove(0, 1);
                 }
                 moves += field.toLower();
@@ -125,11 +120,8 @@ void Engine::engineMove() {
         }
     }
     moves = moves.trimmed();
-    if (moves == "") {
-        this->giveCommand("position startpos");
-    } else {
-        this->giveCommand("position startpos moves " + moves);
-    }
+    QString comm_add = (moves == "") ? "" : " moves " + moves;
+    this->giveCommand("position startpos" + comm_add);
     this->giveCommand("go movetime 5000"); // stockfish gets 5 seconds to think
     if (!this->getReply("bestmove", 350)) { // and 30 seconds after that to print the answer
         return;

@@ -64,12 +64,8 @@ Field::Field(QWidget *mainwidget, int rownumber, int linenumber, int x_offset, i
     this->setGeometry(x_offset + field_side * linenumber, y_offset - field_side * (rownumber + 1),
             // rownumber + 1, because otherwise (x_offset, y_offset) isn't the bottom left point of the board
                       field_side, field_side);
-    QString filename;
-    if (this->piece != "") {
-        filename = "://" + this->piece_color + "_" + this->piece + "_" + this->field_color + ".svg";
-    } else {
-        filename = "://" + this->field_color + ".svg";
-    }
+    QString filename = (this->piece == "") ? "://" + this->field_color + ".svg" :
+                       "://" + this->piece_color + "_" + this->piece + "_" + this->field_color + ".svg";
     this->setIcon(QIcon(filename));
     this->setIconSize(Field::size());
     this->setFixedSize(this->size());
@@ -79,18 +75,9 @@ Field::Field(QWidget *mainwidget, int rownumber, int linenumber, int x_offset, i
 void Field::changeIcon(QString p, QString pc, bool select) {
     this->piece = std::move(p);
     this->piece_color = std::move(pc);
-    QString extension;
-    if (select) {
-        extension = "_selected.svg";
-    } else {
-        extension = ".svg";
-    }
-    QString filename;
-    if (this->piece != "") {
-        filename = "://" + this->piece_color + "_" + this->piece + "_" + this->field_color + extension;
-    } else {
-        filename = "://" + this->field_color + extension;
-    }
+    QString extension = (select) ? "_selected.svg" : ".svg";
+    QString filename = (this->piece == "") ? "://" + this->field_color + extension :
+                       "://" + this->piece_color + "_" + this->piece + "_" + this->field_color + extension;
     this->setIcon(QIcon(filename));
     this->setIconSize(this->size());
     this->show();
