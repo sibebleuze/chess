@@ -6,6 +6,8 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include "../gamemodes/engine.h"
+#include "../gamemodes/server.h"
+//#include "../gamemodes/client.h"
 #include "../gamecontrol/game.h"
 
 QT_BEGIN_NAMESPACE
@@ -15,9 +17,9 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow {
 Q_OBJECT
 public:
-    MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget *parent = nullptr);
 
-    ~MainWindow();
+    ~MainWindow() override;
 
     static std::map<int, QString> mds();
 
@@ -45,10 +47,10 @@ signals:
 
 private:
     Ui::MainWindow *ui;
-    Game *g = nullptr;
-    Engine *e = nullptr;
-    // Server *s = nullptr;
-    // Client *c = nullptr;
+    Game *game = nullptr;
+    Engine *engine = nullptr;
+    Server *server = nullptr;
+//    Client *client = nullptr;
 
     std::vector<QLabel *> mode_infos;
     std::vector<QPushButton *> modes;

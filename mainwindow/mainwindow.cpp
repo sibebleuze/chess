@@ -11,8 +11,8 @@ std::map<int, QString> MainWindow::mds() {
 std::map<int, QString> MainWindow::mdtxts() {
     return {{0, "Player vs. player offline\nOne device"},
             {1, "Player vs. engine (offline)\nOne device"},
-            {2, "Player vs. player online\nFirst device"},
-            {3, "Player vs. player online\nSecond device"}};
+            {2, "Player vs. player online\nFirst device (white)"},
+            {3, "Player vs. player online\nSecond device (black)"}};
 }
 
 std::map<int, std::pair<int, int>> MainWindow::mdpos() {
@@ -55,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent) :
         mode_btn->setGeometry(mode_pos.first, mode_pos.second, 200, 100);
         QObject::connect(mode_btn, &QPushButton::clicked, this, &MainWindow::modeChoice);
         mode_btn->show();
-        if (i > 1) {
+        if (i > 2) {
             mode_btn->setDisabled(true);
         }
         this->modes.push_back(mode_btn);
@@ -64,10 +64,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow() {
     delete this->ui;
-    delete this->g;
-    delete this->e;
-    // delete this->s;
-    // delete this->c;
+    delete this->game;
+    delete this->engine;
+    delete this->server;
+//    delete this->client;
     for (int i = 0; i < this->mode_infos.size(); i++) {
         delete this->mode_infos.back();
         this->mode_infos.pop_back();
@@ -97,8 +97,8 @@ void MainWindow::modeChoice() {
     auto *emitting = (QPushButton *) (QObject::sender());
     QString mode = emitting->objectName();
     if (mode == "localpvp") {
-        this->g = new Game(this);
-        QObject::connect(g, &Game::chessError, this, &MainWindow::errorHandler);
+        this->game = new Game(this);
+        QObject::connect(game, &Game::chessError, this, &MainWindow::errorHandler);
     } else if (mode == "localpve") {
         for (int i = 0; i < 3; i++) {
             QString whitelvltxt = MainWindow::lvltxts()[i] + "\nPlay as white";
@@ -181,24 +181,24 @@ void MainWindow::levelChoice() {
     auto *emitting = (QPushButton *) (QObject::sender());
     int lvl = emitting->objectName().rightRef(1).toInt();
     QString color = emitting->objectName().left(5);
-    this->e = new Engine(this, color);
-    QObject::connect(this->e, &Engine::chessError, this, &MainWindow::errorHandler);
-    this->e->start(lvl);
+    this->engine = new Engine(this, color);
+    QObject::connect(this->engine, &Engine::chessError, this, &MainWindow::errorHandler);
+    this->engine->start(lvl);
     if (color == "black") {
         // first engine move needs to be triggered 'manually' here,
         // all others will be triggered by the switching of the turn during the game
-        this->e->engineMove();
+        this->engine->engineMove();
     }
 }
 
 void MainWindow::onlineSubmit() {
     auto *emitting = (QPushButton *) (QObject::sender());
-    QString online = emitting->objectName();
+    QString mod = emitting->objectName();
     int serverport = this->port->text().toInt();
     if (serverport <= 1024 || serverport >= 49152) {
         return;
     }
-    if (online == "client") {
+    if (mod == "client") {
         QString serverip = this->server_ip->text();
         if (serverip.count(".") != 3) {
             return;
@@ -209,14 +209,14 @@ void MainWindow::onlineSubmit() {
         this->port->hide();
         this->submit_serverinfo->hide();
         // this goes to parameter *mainwindow, serverip goes to parameter serverip, serverport goes to parameter port
-//        this->c = new Client(this, serverip, serverport);
-    } else if (online == "server") {
+//        this->client = new Client(this, serverip, serverport);
+    } else if (mod == "server") {
         this->own_ip->hide();
         this->portinfo->hide();
         this->port->hide();
         this->submit_serverinfo->hide();
-        // this goes to parameter *mainwindow, serverport goes to parameter port
-//        this->s = new Server(this, serverport);
+        this->server = new Server(this, serverport);
+        QObject::connect(this->server, &Server::chessError, this, &MainWindow::errorHandler);
     } else {
         emit this->chessError(ONLINE_TYPE_MISSING);
         return;

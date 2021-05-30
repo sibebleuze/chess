@@ -11,7 +11,7 @@ Q_OBJECT
 public:
     Board(QWidget *mainwidget, int x_offset, int y_offset, int field_side);
 
-    ~Board();
+    ~Board() override;
 
     Field *operator[](std::pair<int, int> position);
 

@@ -11,9 +11,9 @@ Q_OBJECT
 public:
     History(QWidget *mainwidget, int x_offset, int y_offset, int field_side);
 
-    ~History();
+    ~History() override;
 
-    QString getLastText(QString &color);
+    QString getLastText(const QString &color);
 
     void setMove(const QString &color, const QString &move, bool add = false);
 

@@ -32,7 +32,7 @@ History::~History() {
     delete this->table;
 }
 
-QString History::getLastText(QString &color) {
+QString History::getLastText(const QString &color) {
     return this->getItem(this->table->rowCount() - 1, color)->text();
 }
 

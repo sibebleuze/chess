@@ -21,7 +21,7 @@ Game::Game(QWidget *mainwidget, const QString &player_color, int x_offset, int y
     this->game_end->hide();
     this->history = new History(mainwidget, x_offset, y_offset, field_side);
     QObject::connect(this->history, &History::chessError, this, &Game::errorHandler);
-    this->locked = (player_color == "") ? player_color : Game::otherColor(player_color);
+    this->locked = (player_color == "") ? player_color : this->otherColor(player_color);
 }
 
 Game::~Game() {
@@ -56,7 +56,7 @@ void Game::fieldClicked(bool control) {
         }
         this->selected.clear();
         if (!this->game_end->isVisible() && !this->promoting && this->turn == this->locked && !control) {
-            emit this->lockedTurn();
+            emit this->lockedTurn(this->history->getLastText(this->otherColor(this->turn)));
         }
     } else if (emitting->getPieceColor() == this->turn) { // select all possible moves for this field
         std::vector<Field *> all_moves = this->getFieldMoves(emitting);
@@ -159,9 +159,9 @@ void Game::promote() {
         } else if (this->underAttack(king_position, this->turn)) {
             txt += "+";
         }
-        this->history->setMove(Game::otherColor(this->turn), txt, true);
+        this->history->setMove(this->otherColor(this->turn), txt, true);
         if (!this->game_end->isVisible() && this->turn == this->locked) {
-            emit this->lockedTurn();
+            emit this->lockedTurn(this->history->getLastText(this->otherColor(this->turn)));
         }
     }
 }
@@ -351,7 +351,7 @@ std::vector<Field *> Game::getFieldMoves(Field *invoking) {
 }
 
 void Game::switchTurn() {
-    this->turn = Game::otherColor(this->turn);
+    this->turn = this->otherColor(this->turn);
     if (this->en_passant_possible && this->en_passant_vulnerable->getPieceColor() ==
                                      this->turn) { // only the second check is really necessary, but the first makes sure that this->en_passant_vulnerable exists
         this->en_passant_possible = false; // this can only be true for the duration of one turn, so after one move it is set to false
@@ -565,18 +565,18 @@ void Game::execute(Field *destination) {
         } else if (this->underAttack(king_position, this->turn)) {
             rev_alg += "+";
         }
-        this->history->setMove(Game::otherColor(this->turn), rev_alg);
+        this->history->setMove(this->otherColor(this->turn), rev_alg);
     } else {
         this->history->setMove(this->turn, rev_alg);
     }
 }
 
-QString Game::otherColor(const QString &color) {
-    QString c;
+QString Game::otherColor(QString color) {
+    QString col;
     if (color == "white") {
-        c = "black";
+        col = "black";
     } else if (color == "black") {
-        c = "white";
+        col = "white";
     } else {
         emit this->chessError(COLOR_MISSING);
         // not sure if returning the input value here will completely exit immediately, but it's the best I can do
@@ -584,16 +584,21 @@ QString Game::otherColor(const QString &color) {
         // which would make it even harder to debug if this occurs
         return color;
     }
-    return c;
+    return col;
 }
 
 QStringList Game::getHistory(const QString &color) {
     return this->history->getHistory(color);
 }
 
-void Game::executeExternal(const QString &origin, const QString &destination, const QString &promote_piece) {
+void Game::executeExternal(const QString &move) {
     // it is assumed that the input here is correct, so no checks are performed
-//    qDebug() << origin << destination << promote_piece;
+    QString origin = move.left(2);
+    QString destination = move.mid(2, 2);
+    QString promote_piece = "";
+    if (move.length() > 4) {
+        promote_piece = move.right(1).toUpper();
+    }
     (*this->board)[origin]->clicked(true);
     (*this->board)[destination]->clicked(true);
     if (promote_piece != "") {
@@ -607,4 +612,51 @@ void Game::executeExternal(const QString &origin, const QString &destination, co
 
 void Game::errorHandler(int exitcode) {
     emit this->chessError(exitcode);
+}
+
+QString Game::revAlgToLongAlg(QString rev_alg, const QString &color) {
+    if (rev_alg.contains("+")) {
+        rev_alg.chop(1);
+    } else if (rev_alg.contains("#")) {
+        // not breaking off here will result in a "bestmove (none)" answer from stockfish
+        emit this->chessError(MOVE_AFTER_GAME_END);
+    }
+    if (rev_alg.contains(" e.p.")) {
+        rev_alg.chop(5);
+    }
+    QStringList cleanup;
+    if (rev_alg.contains(" - ")) {
+        cleanup = rev_alg.split(" - ");
+    } else if (rev_alg.contains(" x ")) {
+        cleanup = rev_alg.split(" x ");
+    } else {
+        emit this->chessError(SEPARATOR_MISSING);
+    }
+    if (cleanup.at(0) == "O") {
+        if (cleanup.length() == 2) {
+            cleanup.replace(1, "g");
+        } else if (cleanup.length() == 3) {
+            cleanup.replace(1, "c");
+            cleanup.removeLast();
+        }
+        if (color == "white") {
+            cleanup.replace(0, "e1");
+            cleanup.replace(1, cleanup.at(1) + "1");
+        } else if (color == "black") {
+            cleanup.replace(0, "e8");
+            cleanup.replace(1, cleanup.at(1) + "8");
+        } else {
+            emit this->chessError(COLOR_MISSING);
+            // not sure if returning an empty string here will completely exit immediately, but it's the best I can do
+            return QString();
+        }
+    }
+    QString cleaned = "";
+    for (auto field : cleanup) {
+        if (field.left(1).isUpper()) {
+            field.remove(0, 1);
+        }
+        cleaned += field.toLower();
+    }
+    return cleaned;
 }

@@ -20,3 +20,5 @@ the ranges free for custom defined exit codes are:
 #define SEPARATOR_MISSING 86
 // the engine has been ordered to provide a move when the game has already ended
 #define MOVE_AFTER_GAME_END 87
+// the server got a new client connection, but it didn't respond in time
+#define CLIENT_NO_RESPONSE 88

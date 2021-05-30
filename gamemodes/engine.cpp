@@ -4,13 +4,13 @@ Engine::Engine(QWidget *mainwidget, const QString &player_color) {
     this->stockfish = new QProcess();
     this->stockfish->setProgram("stockfish");
     this->stockfish->setReadChannel(QProcess::StandardOutput);
-    this->g = new Game(mainwidget, player_color);
-    QObject::connect(g, &Game::lockedTurn, this, &Engine::engineMove);
-    QObject::connect(g, &Game::chessError, this, &Engine::errorHandler);
+    this->game = new Game(mainwidget, player_color);
+    QObject::connect(game, &Game::lockedTurn, this, &Engine::engineMove);
+    QObject::connect(game, &Game::chessError, this, &Engine::errorHandler);
 }
 
 Engine::~Engine() {
-    delete this->g;
+    delete this->game;
     if (this->stockfish->state() == QProcess::Running) {
         this->giveCommand("quit");
         this->stockfish->waitForFinished(5000);
@@ -34,17 +34,17 @@ void Engine::start(int level) {
         emit this->chessError(STOCKFISH_NOT_FOUND);
         return;
     }
-    if (!this->getReply("Stockfish", 300)) {
+    if (!this->getReply("Stockfish")) {
         return; // stockfish gets 30 seconds to respond after startup command was issued
     }
     this->giveCommand("uci");
-    if (!this->getReply("uciok", 300)) {
+    if (!this->getReply("uciok")) {
         return; // stockfish must send "uciok" after "uci" command, it gets 30 seconds to do so
     }
     // 'Skill Level' ranges from 0 to 20, level 4 is already quite hard, so easy=0, medium=4, hard=8
     this->giveCommand("setoption name Skill Level value " + QString::number(4 * level));
     this->giveCommand("isready");
-    if (!this->getReply("readyok", 300)) {
+    if (!this->getReply("readyok")) {
         return; // stockfish must send "readyok" after "isready" command, it gets 30 seconds to do so
     }
 }
@@ -69,8 +69,8 @@ bool Engine::getReply(const QString &inReply, int cycles) {
 
 void Engine::engineMove() {
     QApplication::processEvents();
-    QStringList white_history = this->g->getHistory("white");
-    QStringList black_history = this->g->getHistory("black");
+    QStringList white_history = this->game->getHistory("white");
+    QStringList black_history = this->game->getHistory("black");
     if (black_history.length() == white_history.length() - 1) {
         black_history.push_back("  -  "); // both need to be equal length to not crash the following loop
     }
@@ -78,45 +78,7 @@ void Engine::engineMove() {
     for (int i = 0; i < white_history.length(); i++) {
         for (int j = 0; j < 2; j++) {
             QString histitem = (j == 0) ? white_history.at(i) : black_history.at(i);
-            if (histitem.contains("+")) {
-                histitem.chop(1);
-            } else if (histitem.contains("#")) {
-                // not breaking off here will result in a "bestmove (none)" answer from stockfish
-                emit this->chessError(MOVE_AFTER_GAME_END);
-            }
-            if (histitem.contains(" e.p.")) {
-                histitem.chop(5);
-            }
-            QStringList cleanup;
-            if (histitem.contains(" - ")) {
-                cleanup = histitem.split(" - ");
-            } else if (histitem.contains(" x ")) {
-                cleanup = histitem.split(" x ");
-            } else {
-                emit this->chessError(SEPARATOR_MISSING);
-            }
-            if (cleanup.at(0) == "O") {
-                if (cleanup.length() == 2) {
-                    cleanup.replace(1, "g");
-                } else if (cleanup.length() == 3) {
-                    cleanup.replace(1, "c");
-                    cleanup.removeLast();
-                }
-                if (j == 0) {
-                    cleanup.replace(0, "e1");
-                    cleanup.replace(1, cleanup.at(1) + "1");
-                } else {
-                    cleanup.replace(0, "e8");
-                    cleanup.replace(1, cleanup.at(1) + "8");
-                }
-            }
-            for (auto field : cleanup) {
-                if (field.left(1).isUpper()) {
-                    field.remove(0, 1);
-                }
-                moves += field.toLower();
-            }
-            moves += " ";
+            moves += this->game->revAlgToLongAlg(histitem, (j == 0) ? "white" : "black") + " ";
         }
     }
     moves = moves.trimmed();
@@ -126,15 +88,9 @@ void Engine::engineMove() {
     if (!this->getReply("bestmove", 350)) { // and 30 seconds after that to print the answer
         return;
     }
-    QString bestmove = this->last_reply.split(" ")[1];
+    QString move = this->last_reply.split(" ")[1];
     this->last_reply = ""; // reset last reply so it doesn't try to make the same move twice
-    QString origin = bestmove.left(2);
-    QString destination = bestmove.mid(2, 2);
-    QString promote_piece = "";
-    if (bestmove.length() > 4) {
-        promote_piece = bestmove.right(1);
-    }
-    this->g->executeExternal(origin, destination, promote_piece.toUpper());
+    this->game->executeExternal(move);
 }
 
 void Engine::giveCommand(const QString &command) {

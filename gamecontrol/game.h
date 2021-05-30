@@ -7,12 +7,9 @@
 class Game : public QObject {
 Q_OBJECT
 public:
-    // Clang-Tidy: Constructors that are callable with a single argument must
-    // be marked explicit to avoid unintentional implicit conversions
     explicit Game(QWidget *mainwidget, const QString &player_color = "", int x_offset = 100, int y_offset = 500,
                   int field_side = 50);
 
-    // Clang-Tidy: Annotate this function with 'override' or (rarely) 'final'
     ~Game() override;
 
     void switchTurn();
@@ -21,11 +18,13 @@ public:
 
     static std::map<QString, QString> piece_to_letter();
 
-    QString otherColor(const QString &color);
+    QString otherColor(QString color);
 
     QStringList getHistory(const QString &color);
 
-    void executeExternal(const QString &origin, const QString &destination, const QString &promote_piece);
+    void executeExternal(const QString &move);
+
+    QString revAlgToLongAlg(QString rev_alg, const QString &color);
 
 public slots:
 
@@ -37,7 +36,7 @@ public slots:
 
 signals:
 
-    void lockedTurn();
+    void lockedTurn(QString move);
 
     void chessError(int exitcode);
 
