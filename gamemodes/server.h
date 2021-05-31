@@ -1,6 +1,7 @@
 #ifndef CHESS_SERVER_H
 #define CHESS_SERVER_H
 
+#include <limits>
 #include <QTcpServer>
 #include <QTcpSocket>
 #include "../gamecontrol/game.h"
@@ -18,9 +19,7 @@ public slots:
 
     void errorHandler(int exitcode);
 
-    void sendMove(const QString &move);
-
-    void receiveMove();
+    void clientMove(const QString &move);
 
 signals:
 
@@ -30,11 +29,11 @@ private:
     QTcpServer *server;
     QTcpSocket *socket = nullptr;
     Game *game;
-
-    QString last_reply;
     QString store_move = "";
 
-    bool getReply(const QString &inReply, int cycles = 300);
+    QString last_reply = "";
+
+    void getReply(const QString &inReply, const QString &repeat);
 
     void sendCommand(const QString &command);
 };

@@ -5,7 +5,7 @@ Server::Server(QWidget *mainwidget, int port) {
     QObject::connect(this->server, &QTcpServer::newConnection, this, &Server::connection);
     this->server->listen(QHostAddress::AnyIPv4, port);
     this->game = new Game(mainwidget, "white");
-    QObject::connect(this->game, &Game::lockedTurn, this, &Server::sendMove);
+    QObject::connect(this->game, &Game::lockedTurn, this, &Server::clientMove);
     QObject::connect(this->game, &Game::chessError, this, &Server::errorHandler);
 }
 
@@ -22,63 +22,48 @@ Server::~Server() {
 void Server::connection() {
     this->socket = this->server->nextPendingConnection();
     this->sendCommand("isready");
-    if (!this->getReply("readyok")) {
-        return;
-    }
-    QObject::connect(this->socket, &QTcpSocket::readyRead, this, &Server::receiveMove);
+    this->getReply("readyok", "isready");
     if (this->store_move != "") {
-        this->sendMove(this->store_move);
+        this->clientMove(this->store_move);
     }
 }
 
-void Server::errorHandler(int exitcode) {
-    emit this->chessError(exitcode);
-}
-
-void Server::sendMove(const QString &move) {
+void Server::clientMove(const QString &move) {
     if (this->socket != nullptr) {
         this->store_move = "";
-        this->sendCommand(this->game->revAlgToLongAlg(move, "white"));
-        if (!this->getReply("receivedmove")) {
-            return;
-        }
-        this->sendCommand("receivedok");
+        QString to_send = this->game->revAlgToLongAlg(move, "white");
+        this->sendCommand("move:" + to_send);
+        this->getReply("receivedmove:" + move, "move:" + to_send);
+        this->sendCommand("receivedok:" + move);
+        this->getReply("move:", "receivedok:" + move);
+        QString mv = this->last_reply.split(":")[1];
+//        this->last_reply = ""; // reset last reply so it doesn't try to make the same move twice
+        this->sendCommand("receivedmove:" + mv);
+        this->getReply("receivedok:" + mv, "receivedmove:" + mv);
+        // only now that both machines have confirmation the move has arrived, it is performed
+        this->game->executeExternal(mv);
     } else {
+        // there is no socket yet, wait to send until there is
         this->store_move = move;
     }
 }
 
-void Server::receiveMove() {
-    if (!this->getReply("move:")) {
-        return;
-    }
-    QString move = this->last_reply.split(":")[1];
-    this->last_reply = ""; // reset last reply so it doesn't try to make the same move twice
-    this->sendCommand("receivedmove");
-    if (!this->getReply("receivedok")) {
-        return;
-    }
-    this->game->executeExternal(move);
-}
-
-bool Server::getReply(const QString &inReply, int cycles) {
+void Server::getReply(const QString &inReply, const QString &repeat) {
     do {
         QApplication::processEvents();
         if (this->socket->canReadLine()) {
             this->last_reply = QString::fromLocal8Bit(this->socket->readLine()).trimmed();
         } else {
+            this->sendCommand(repeat);
             this->socket->waitForReadyRead(100);
-            cycles -= 1;
         }
-    } while (!this->last_reply.contains(inReply) && cycles > 0);
-    if (this->last_reply.contains(inReply)) {
-        return true;
-    } else {
-        emit this->chessError(CLIENT_NO_RESPONSE);
-        return false;
-    }
+    } while (!this->last_reply.contains(inReply));
 }
 
 void Server::sendCommand(const QString &command) {
     this->socket->write(command.toLocal8Bit());
+}
+
+void Server::errorHandler(int exitcode) {
+    emit this->chessError(exitcode);
 }
