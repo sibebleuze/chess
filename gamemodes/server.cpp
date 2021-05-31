@@ -55,6 +55,7 @@ void Server::getReply(const QString &inReply, const QString &repeat) {
         } else {
             if (repeat != "") {
                 this->sendCommand(repeat);
+                qDebug() << repeat;
             }
             this->socket->waitForReadyRead(100);
         }
