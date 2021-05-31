@@ -55,9 +55,9 @@ MainWindow::MainWindow(QWidget *parent) :
         mode_btn->setGeometry(mode_pos.first, mode_pos.second, 200, 100);
         QObject::connect(mode_btn, &QPushButton::clicked, this, &MainWindow::modeChoice);
         mode_btn->show();
-        if (i > 2) {
-            mode_btn->setDisabled(true);
-        }
+//        if (i > 2) {
+//            mode_btn->setDisabled(true);
+//        }
         this->modes.push_back(mode_btn);
     }
 }
@@ -67,7 +67,7 @@ MainWindow::~MainWindow() {
     delete this->game;
     delete this->engine;
     delete this->server;
-//    delete this->client;
+    delete this->client;
     for (int i = 0; i < this->mode_infos.size(); i++) {
         delete this->mode_infos.back();
         this->mode_infos.pop_back();
@@ -208,8 +208,10 @@ void MainWindow::onlineSubmit() {
         this->portinfo->hide();
         this->port->hide();
         this->submit_serverinfo->hide();
-        // this goes to parameter *mainwindow, serverip goes to parameter serverip, serverport goes to parameter port
-//        this->client = new Client(this, serverip, serverport);
+        this->client = new Client(this, serverip, serverport);
+        QObject::connect(this->client, &Client::chessError, this, &MainWindow::errorHandler);
+        // client needs to be triggered manually once here to read in the first move of the server
+        this->client->firstServerMove();
     } else if (mod == "server") {
         this->own_ip->hide();
         this->portinfo->hide();

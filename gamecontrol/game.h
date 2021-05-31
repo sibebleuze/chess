@@ -1,6 +1,10 @@
 #ifndef CHESS_GAME_H
 #define CHESS_GAME_H
 
+// the two tcp includes are here for convenience, they are only needed in the Server and Client classes
+#include <QTcpServer>
+#include <QTcpSocket>
+
 #include "history.h"
 #include "../chessboard/board.h"
 

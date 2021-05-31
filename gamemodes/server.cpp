@@ -37,7 +37,6 @@ void Server::clientMove(const QString &move) {
         this->sendCommand("receivedok:" + move);
         this->getReply("move:", "receivedok:" + move);
         QString mv = this->last_reply.split(":")[1];
-//        this->last_reply = ""; // reset last reply so it doesn't try to make the same move twice
         this->sendCommand("receivedmove:" + mv);
         this->getReply("receivedok:" + mv, "receivedmove:" + mv);
         // only now that both machines have confirmation the move has arrived, it is performed
@@ -54,7 +53,9 @@ void Server::getReply(const QString &inReply, const QString &repeat) {
         if (this->socket->canReadLine()) {
             this->last_reply = QString::fromLocal8Bit(this->socket->readLine()).trimmed();
         } else {
-            this->sendCommand(repeat);
+            if (repeat != "") {
+                this->sendCommand(repeat);
+            }
             this->socket->waitForReadyRead(100);
         }
     } while (!this->last_reply.contains(inReply));

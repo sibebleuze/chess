@@ -7,7 +7,7 @@
 #include <QNetworkReply>
 #include "../gamemodes/engine.h"
 #include "../gamemodes/server.h"
-//#include "../gamemodes/client.h"
+#include "../gamemodes/client.h"
 #include "../gamecontrol/game.h"
 
 QT_BEGIN_NAMESPACE
@@ -50,7 +50,7 @@ private:
     Game *game = nullptr;
     Engine *engine = nullptr;
     Server *server = nullptr;
-//    Client *client = nullptr;
+    Client *client = nullptr;
 
     std::vector<QLabel *> mode_infos;
     std::vector<QPushButton *> modes;

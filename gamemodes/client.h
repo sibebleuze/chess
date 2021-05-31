@@ -1,32 +1,38 @@
-#ifndef CHESS_SERVER_H
-#define CHESS_SERVER_H
+#ifndef CHESS_CLIENT_H
+#define CHESS_CLIENT_H
 
 #include "../gamecontrol/game.h"
 
-class Server : public QObject {
+class Client : public QObject {
 Q_OBJECT
 public:
-    explicit Server(QWidget *mainwidget, int port = 16534);
+    Client(QWidget *mainwidget, const QString &server_ip, int server_port = 16534);
 
-    ~Server() override;
+    ~Client();
+
+    void firstServerMove();
 
 public slots:
 
     void connection();
 
+    void reconnect();
+
     void errorHandler(int exitcode);
 
-    void clientMove(const QString &move);
+    void serverMove(const QString &move);
 
 signals:
 
     void chessError(int exitcode);
 
 private:
-    QTcpServer *server;
-    QTcpSocket *socket = nullptr;
+    QTcpSocket *socket;
     Game *game;
     QString store_move = "";
+
+    QString server_ip;
+    int server_port;
 
     QString last_reply = "";
 
@@ -36,4 +42,4 @@ private:
 };
 
 
-#endif //CHESS_SERVER_H
+#endif //CHESS_CLIENT_H
