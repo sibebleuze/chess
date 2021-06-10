@@ -24,7 +24,6 @@ add_executable(chess
         "main.cpp"
         "mainwindow/mainwindow.cpp"
         "chessboard/board.cpp"
-        "chessboard/line.cpp"
         "chessboard/field.cpp"
         "gamecontrol/game.cpp"
         "gamecontrol/history.cpp"

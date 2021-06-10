@@ -3,8 +3,8 @@
 
 
 #include <QLabel>
-
-#include "line.h"
+#include <vector>
+#include "field.h"
 
 class Board : public QObject {
 Q_OBJECT
@@ -30,7 +30,7 @@ signals:
     void chessError(int exitcode);
 
 private:
-    std::vector<Line *> lines; // will be vector of 8 Lines
+    std::vector<std::vector<Field *>> lines; // will be vector of 8 'lines' of fields
     std::vector<QLabel *> row_column_nametags;
     std::vector<Field *> white_promoting;
     std::vector<Field *> black_promoting;

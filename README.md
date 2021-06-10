@@ -53,3 +53,10 @@ These situations are all impossible to reach as far as I know (except for 84 and
 where I might have made a mistake. If any of the above situations occur, the program will exit. Please do let me know if
 this happens (by submitting an issue on the [Github repo](https://github.com/sibebleuze/chess)). Keep in mind that
 problems with stockfish are especially hard to fix, since the stockfish output is not reproducible.
+
+Some commands that may help if the program doesn't immediately start on linux:
+
+* ```apt install qt5-default```
+* ```apt install libxcb-xinerama0```
+* ```export QT_QPA_PLATFORM=wayland```, where you can replace with whatever you want to use (I think default is xcb,
+  which is what the previous command installs)

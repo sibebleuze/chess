@@ -2,6 +2,7 @@
 #include <QScreen>
 
 int main(int argc, char *argv[]) {
+    QCoreApplication::addLibraryPath(".");
     Q_INIT_RESOURCE(qtres);
     QApplication app(argc, argv);
     MainWindow w;

@@ -13,8 +13,13 @@ Board::Board(QWidget *mainwidget, int x_offset, int y_offset, int field_side) {
         this->white_promoting.push_back(g);
         this->black_promoting.push_back(h);
         for (int j = 0; j < 2; j++) {
-            Line *l = new Line(mainwidget, 2 * i + j, x_offset, y_offset, field_side);
-            this->lines.push_back(l);
+            std::vector<Field *> fields;
+            for (int linenumber = 0; linenumber < 8; linenumber++) {
+                Field *f;
+                f = new Field(mainwidget, 2 * i + j, linenumber, x_offset, y_offset, field_side);
+                fields.push_back(f);
+            }
+            this->lines.push_back(fields);
             QLabel *q, *r;
             q = new QLabel(mainwidget);
             r = new QLabel(mainwidget);
@@ -53,9 +58,13 @@ Board::~Board() {
         this->black_promoting.pop_back();
         for (int j = 0; j < 2; j++) {
             // this one has a length of 8
-            delete this->lines.back();
+            std::vector<Field *> fields = this->lines.back();
+            for (int k = 0; k < 8; k++) {
+                delete fields.back();
+                fields.pop_back();
+            }
             this->lines.pop_back();
-            for (int k = 0; k < 2; k++) {
+            for (int l = 0; l < 2; l++) {
                 // and this one has a length of 16
                 delete this->row_column_nametags.back();
                 this->row_column_nametags.pop_back();
@@ -65,7 +74,7 @@ Board::~Board() {
 }
 
 Field *Board::operator[](std::pair<int, int> position) {
-    return (*this->lines[position.first])[position.second];
+    return this->lines[position.first][position.second];
 }
 
 std::map<QString, int> Board::column_numbers() {
