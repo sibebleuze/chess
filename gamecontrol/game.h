@@ -61,13 +61,6 @@ private:
     // initial values below are the starting positions of both kings
     std::pair<int, int> white_king_position = std::make_pair(0, 4);
     std::pair<int, int> black_king_position = std::make_pair(7, 4);
-    // booleans below keep track of which of the kings and rooks already moved, this is needed for castling
-    bool white_king_moved = false;
-    bool black_king_moved = false;
-    bool white_rook_left_moved = false;
-    bool white_rook_right_moved = false;
-    bool black_rook_left_moved = false;
-    bool black_rook_right_moved = false;
 
     std::vector<Field *> selected;
 
@@ -92,6 +85,8 @@ private:
     History *history;
 
     void execute(Field *destination);
+
+    bool hasMoved(QString color, const QString &query, int to_search = 2);
 };
 
 
