@@ -30,7 +30,10 @@ is tested to work with Stockfish 13. Stockfish is ditributed under the
 The program consists of a basic chess game, only mouse clicks are supported to interact with the program. On the right
 side of the screen next to the board is a live report of the moves played
 in [reversible algebraic notation](https://en.wikipedia.org/wiki/Chess_notation). You can play against a human opponent
-using the same computer or play against stockfish on 3 different levels.
+using the same computer or play against stockfish on 3 different levels. The program relies on Qt and will not work
+without it. On Windows, all necessary files should be included in the installer. On Linux, there are some commands below
+that might help if Qt is missing on your machine. Since Qt is used, I assume that the license that allows me to do that
+applies to this program as well (I think this is GNU GPL as well).
 
 This program has a few custom exit codes (passed on through signals and slots by Qt until the main application is
 reached and the program exits):
@@ -58,5 +61,5 @@ Some commands that may help if the program doesn't immediately start on linux:
 
 * ```apt install qt5-default```
 * ```apt install libxcb-xinerama0```
-* ```export QT_QPA_PLATFORM=wayland```, where you can replace with whatever you want to use (I think default is xcb,
-  which is what the previous command installs)
+* ```export QT_QPA_PLATFORM=wayland```, where you can replace wayland with whatever you want to use
+  (I think default is xcb, which is what the previous command installs)
