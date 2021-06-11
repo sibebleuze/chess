@@ -209,9 +209,11 @@ void MainWindow::onlineSubmit() {
         this->port->hide();
         this->submit_serverinfo->hide();
         this->client = new Client(this, serverip, serverport);
-        QObject::connect(this->client, &Client::chessError, this, &MainWindow::errorHandler);
-        // client needs to be triggered manually once here to read in the first move of the server
-        this->client->firstServerMove();
+        if (this->isVisible()) { // if the program is closed, we need to skip these, since they will keep looping
+            QObject::connect(this->client, &Client::chessError, this, &MainWindow::errorHandler);
+            // client needs to be triggered manually once here to read in the first move of the server
+            this->client->firstServerMove();
+        }
     } else if (mod == "server") {
         this->own_ip->hide();
         this->portinfo->hide();

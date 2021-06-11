@@ -4,15 +4,20 @@ Client::Client(QWidget *mainwidget, const QString &server_ip, int server_port) {
     this->server_ip = server_ip;
     this->server_port = server_port;
     this->socket = new QTcpSocket(this);
-    this->game = new Game(mainwidget, "black");
+    this->main = mainwidget;
+    this->game = new Game(this->main, "black");
     QObject::connect(this->game, &Game::lockedTurn, this, &Client::serverMove);
     QObject::connect(this->game, &Game::chessError, this, &Client::errorHandler);
-    bool connected;
+    this->socket->connectToHost(this->server_ip, this->server_port);
     do {
         QApplication::processEvents();
-        connected = this->socket->bind(QHostAddress(this->server_ip), this->server_port,
-                                       QAbstractSocket::DontShareAddress);
-    } while (!connected);
+        qDebug() << "Connecting";
+        this->socket->waitForConnected(100);
+    } while (this->socket->state() != QAbstractSocket::ConnectedState && this->main->isVisible());
+    if (this->main->isVisible()) {
+        qDebug() << "Binding";
+        this->socket->bind(QHostAddress(this->server_ip), this->server_port, QAbstractSocket::DontShareAddress);
+    }
     QObject::connect(this->socket, &QTcpSocket::readyRead, this, &Client::connection);
     QObject::connect(this->socket, &QTcpSocket::stateChanged, this, &Client::reconnect);
 }
@@ -36,12 +41,17 @@ void Client::connection() {
 
 void Client::reconnect() {
     if (this->socket->state() != QAbstractSocket::BoundState) {
-        bool connected;
+        this->socket->connectToHost(this->server_ip, this->server_port);
         do {
             QApplication::processEvents();
-            connected = this->socket->bind(QHostAddress(this->server_ip), this->server_port,
-                                           QAbstractSocket::DontShareAddress);
-        } while (!connected);
+            qDebug() << "Reconnecting";
+            this->socket->waitForConnected(100);
+        } while (this->socket->state() != QAbstractSocket::ConnectedState && this->main->isVisible());
+        if (this->main->isVisible()) {
+            qDebug() << "Rebinding";
+            this->socket->bind(QHostAddress(this->server_ip), this->server_port,
+                               QAbstractSocket::DontShareAddress);
+        }
     }
     if (this->socket->state() == QAbstractSocket::BoundState && this->store_move != "") {
         this->serverMove(this->store_move);

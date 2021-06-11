@@ -27,6 +27,7 @@ signals:
     void chessError(int exitcode);
 
 private:
+    QWidget *main;
     QTcpSocket *socket;
     Game *game;
     QString store_move = "";
