@@ -10,7 +10,6 @@ Engine::Engine(QWidget *mainwidget, const QString &player_color) {
 }
 
 Engine::~Engine() {
-//    delete this->game;
     if (this->stockfish->state() == QProcess::Running) {
         this->giveCommand("quit");
         this->stockfish->waitForFinished(5000);
