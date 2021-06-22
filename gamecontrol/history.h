@@ -3,7 +3,6 @@
 
 #include <QTableWidget>
 #include <QHeaderView>
-#include <QDebug> // TODO: remove QDebug from final project
 #include "../chessboard/chessObject.h"
 
 class History : public ChessObject {

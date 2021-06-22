@@ -1,6 +1,7 @@
 #ifndef CHESS_ONLINE_H
 #define CHESS_ONLINE_H
 
+#include <QDebug> // TODO: remove QDebug from final project
 #include <QTcpServer>
 #include <QTcpSocket>
 #include "gameMode.h"

@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <map>
 #include <utility>
-#include <QDebug> // TODO: remove QDebug from final project
 
 class Field : public QPushButton {
 public:
@@ -26,7 +25,7 @@ public:
 
     std::pair<int, int> getPosition();
 
-    bool isSelected() const;
+    [[nodiscard]] bool isSelected() const;
 
     static std::map<int, QString> column_names();
 
