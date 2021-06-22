@@ -5,7 +5,6 @@
 #include <QHeaderView>
 #include <QDebug> // TODO: remove QDebug from final project
 #include "../chessboard/chessObject.h"
-#include "../nvwa-1.1/nvwa/debug_new.h" // TODO: remove nvwa from final project
 
 class History : public ChessObject {
 Q_OBJECT

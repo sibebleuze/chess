@@ -2,18 +2,19 @@
 
 Chess game with local, engine and remote options for C++ course
 
-Windows instructions:
+If you don't want to build from source, there are compiled executables available on the
+[release page](https://github.com/sibebleuze/chess/releases).
 
-Unzip the file nvwa-1.1.zip in the folder where the zip is located. Load the CMake project (your IDE probably has an
-option for this). Build the project. If you are working in the command line, follow the steps below, where you replace '
-cmake' and 'make' with the corresponding executables (or run them as commands if their executables are included in your
-system path).
+Windows build instructions:
 
-Linux instructions:
+Load the CMake project (your IDE probably has an option for this). Build the project. If you are working in the command
+line, follow the steps below, where you replace 'cmake' and 'make' with the corresponding executables (or run them as
+commands if their executables are included in your system path).
+
+Linux build instructions:
 
 To build from source, run the following commands from the chess directory:
 
-* ```unzip nvwa-1.1.zip``` (or get it from [the nvwa Github repo](https://github.com/adah1972/nvwa))
 * ```cmake .```
 * ```make```
 
@@ -30,7 +31,8 @@ is tested to work with Stockfish 13. Stockfish is ditributed under the
 The program consists of a basic chess game, only mouse clicks are supported to interact with the program. On the right
 side of the screen next to the board is a live report of the moves played
 in [reversible algebraic notation](https://en.wikipedia.org/wiki/Chess_notation). You can play against a human opponent
-using the same computer or play against stockfish on 3 different levels. The program relies on Qt and will not work
+using the same computer or play against stockfish on 3 different levels. The plan was to be able to play against another
+player over the internet, but unfortunately this doesn't seem to work (yet). The program relies on Qt and will not work
 without it. On Windows, all necessary files should be included in the installer. On Linux, there are some commands below
 that might help if Qt is missing on your machine. Since Qt is used, I assume that the license that allows me to do that
 applies to this program as well (I think this is GNU GPL as well).

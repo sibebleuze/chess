@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 project(chess)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 set(QT_VERSION 5)
 set(REQUIRED_LIBS Core Gui Widgets Network)
@@ -15,7 +15,6 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS "mainwindow")
 find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 
 add_executable(chess
-        "nvwa-1.1/nvwa/debug_new.cpp" # catch some memory leaks
         "main.cpp"
         "mainwindow/mainwindow.cpp"
         "chessboard/board.cpp"
@@ -30,7 +29,6 @@ add_executable(chess
         "gamemodes/online.cpp"
         "gamemodes/gameMode.cpp"
         "icons/qtres.qrc")
-# TODO: remove nvwa from final project, reset CMAKE_CXX_STANDARD to 17 (lowered to 14 for nvwa)
 
 target_link_libraries(chess ${REQUIRED_LIBS_QUALIFIED})
 add_custom_command(TARGET chess
