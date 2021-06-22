@@ -6,7 +6,7 @@
 class Local : public GameMode {
 Q_OBJECT
 public:
-    Local(QWidget *mainwidget);
+    explicit Local(QWidget *mainwidget);
 };
 
 

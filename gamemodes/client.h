@@ -12,7 +12,7 @@ public:
 
 public slots:
 
-    void connection();
+    void connection() override;
 
     void reconnect();
 
