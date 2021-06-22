@@ -3,10 +3,10 @@
 
 
 #include <QLabel>
-#include <vector>
 #include "field.h"
+#include "chessObject.h"
 
-class Board : public QObject {
+class Board : public ChessObject {
 Q_OBJECT
 public:
     Board(QWidget *mainwidget, int x_offset, int y_offset, int field_side);
@@ -24,10 +24,6 @@ public:
     Field *getKingPosition(QString &color);
 
     static std::map<QString, int> column_numbers();
-
-signals:
-
-    void chessError(int exitcode);
 
 private:
     std::vector<std::vector<Field *>> lines; // will be vector of 8 'lines' of fields

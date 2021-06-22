@@ -4,9 +4,10 @@
 #include <QTableWidget>
 #include <QHeaderView>
 #include <QDebug> // TODO: remove QDebug from final project
-#include "../exit_codes.h"
+#include "../chessboard/chessObject.h"
+#include "../nvwa-1.1/nvwa/debug_new.h" // TODO: remove nvwa from final project
 
-class History : public QObject {
+class History : public ChessObject {
 Q_OBJECT
 public:
     History(QWidget *mainwidget, int x_offset, int y_offset, int field_side);
@@ -20,10 +21,6 @@ public:
     void setResult(const QString &result);
 
     QStringList getHistory(const QString &color = "");
-
-signals:
-
-    void chessError(int exitcode);
 
 private:
     QTableWidget *table;

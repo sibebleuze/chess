@@ -5,10 +5,10 @@
 #include <QLineEdit>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include "../gamemodes/local.h"
 #include "../gamemodes/engine.h"
 #include "../gamemodes/server.h"
 #include "../gamemodes/client.h"
-#include "../gamecontrol/game.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -47,10 +47,7 @@ signals:
 
 private:
     Ui::MainWindow *ui;
-    Game *game = nullptr;
-    Engine *engine = nullptr;
-    Server *server = nullptr;
-    Client *client = nullptr;
+    GameMode *gm = nullptr;
 
     std::vector<QLabel *> mode_infos;
     std::vector<QPushButton *> modes;

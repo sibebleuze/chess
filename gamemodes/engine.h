@@ -2,32 +2,26 @@
 #define CHESS_ENGINE_H
 
 #include <QProcess>
-#include "../gamecontrol/game.h"
+#include "gameMode.h"
 
-class Engine : public QObject {
+class Engine : public GameMode {
 Q_OBJECT
 public:
     Engine(QWidget *mainwidget, const QString &player_color);
 
     ~Engine() override;
 
-    void start(int level);
+    void start(int level) override;
 
 public slots:
 
-    void engineMove();
-
-    void errorHandler(int exitcode);
-
-signals:
-
-    void chessError(int exitcode);
+    void engineMove() override;
 
 private:
-    Game *game;
+//    Game *game;
     QProcess *stockfish;
 
-    QString last_reply = "";
+//    QString last_reply = "";
 
     bool getReply(const QString &inReply, int cycles = 300);
 

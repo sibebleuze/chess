@@ -15,17 +15,12 @@ Client::Client(QWidget *mainwidget, const QString &server_ip, int server_port) {
         this->socket->waitForConnected(100);
     } while (this->socket->state() != QAbstractSocket::ConnectedState && this->main->isVisible());
     if (this->main->isVisible()) {
-        qDebug() << "Binding";
+        qDebug() << "Connected, now binding";
         this->socket->bind(QHostAddress(this->server_ip), this->server_port, QAbstractSocket::DontShareAddress);
+        qDebug() << "Bound";
     }
     QObject::connect(this->socket, &QTcpSocket::readyRead, this, &Client::connection);
     QObject::connect(this->socket, &QTcpSocket::stateChanged, this, &Client::reconnect);
-}
-
-Client::~Client() {
-    delete this->game;
-    this->socket->close();
-    delete this->socket;
 }
 
 void Client::connection() {
@@ -90,27 +85,4 @@ void Client::serverMove(const QString &move) {
         this->store_move = move;
         this->reconnect();
     }
-}
-
-void Client::getReply(const QString &inReply, const QString &repeat) {
-    do {
-        QApplication::processEvents();
-        if (this->socket->canReadLine()) {
-            this->last_reply = QString::fromLocal8Bit(this->socket->readLine()).trimmed();
-        } else {
-            if (repeat != "") {
-                this->sendCommand(repeat);
-                qDebug() << repeat;
-            }
-            this->socket->waitForReadyRead(100);
-        }
-    } while (!this->last_reply.contains(inReply));
-}
-
-void Client::sendCommand(const QString &command) {
-    this->socket->write(command.toLocal8Bit());
-}
-
-void Client::errorHandler(int exitcode) {
-    emit this->chessError(exitcode);
 }

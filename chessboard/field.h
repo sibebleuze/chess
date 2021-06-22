@@ -3,12 +3,11 @@
 
 #include <QIcon>
 #include <QPushButton>
-#include <QApplication>
+#include <vector>
 #include <algorithm>
 #include <map>
 #include <utility>
 #include <QDebug> // TODO: remove QDebug from final project
-#include "../exit_codes.h"
 #include "../nvwa-1.1/nvwa/debug_new.h" // TODO: remove nvwa from final project
 
 class Field : public QPushButton {

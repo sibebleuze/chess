@@ -1,14 +1,10 @@
 #ifndef CHESS_GAME_H
 #define CHESS_GAME_H
 
-// the two tcp includes are here for convenience, they are only needed in the Server and Client classes
-#include <QTcpServer>
-#include <QTcpSocket>
-
 #include "history.h"
 #include "../chessboard/board.h"
 
-class Game : public QObject {
+class Game : public ChessObject {
 Q_OBJECT
 public:
     explicit Game(QWidget *mainwidget, const QString &player_color = "", int x_offset = 100, int y_offset = 500,
@@ -36,13 +32,9 @@ public slots:
 
     void promote();
 
-    void errorHandler(int exitcode);
-
 signals:
 
     void lockedTurn(QString move);
-
-    void chessError(int exitcode);
 
 private:
     Board *board;

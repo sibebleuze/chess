@@ -10,11 +10,6 @@ Server::Server(QWidget *mainwidget, int port) {
 }
 
 Server::~Server() {
-    delete this->game;
-    if (this->socket != nullptr) {
-        this->socket->close();
-    }
-    delete this->socket;
     this->server->close();
     delete this->server;
 }
@@ -45,27 +40,4 @@ void Server::clientMove(const QString &move) {
         // there is no socket yet, wait to send until there is
         this->store_move = move;
     }
-}
-
-void Server::getReply(const QString &inReply, const QString &repeat) {
-    do {
-        QApplication::processEvents();
-        if (this->socket->canReadLine()) {
-            this->last_reply = QString::fromLocal8Bit(this->socket->readLine()).trimmed();
-        } else {
-            if (repeat != "") {
-                this->sendCommand(repeat);
-                qDebug() << repeat;
-            }
-            this->socket->waitForReadyRead(100);
-        }
-    } while (!this->last_reply.contains(inReply));
-}
-
-void Server::sendCommand(const QString &command) {
-    this->socket->write(command.toLocal8Bit());
-}
-
-void Server::errorHandler(int exitcode) {
-    emit this->chessError(exitcode);
 }

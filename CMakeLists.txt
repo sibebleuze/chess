@@ -6,16 +6,11 @@ set(CMAKE_CXX_STANDARD 14)
 set(QT_VERSION 5)
 set(REQUIRED_LIBS Core Gui Widgets Network)
 set(REQUIRED_LIBS_QUALIFIED Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network)
-set(CMAKE_PREFIX_PATH "C:/Qt/5.15.2/msvc2019")
+set(CMAKE_PREFIX_PATH "C:/Qt/5.15.2/msvc2019") # e.g. "path/to/Qt/lib/cmake\" or "/usr/include/{host}/qt{version}/"
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS "mainwindow")
-
-if (NOT CMAKE_PREFIX_PATH)
-    message(WARNING "CMAKE_PREFIX_PATH is not defined, you may need to set it "
-            "(-DCMAKE_PREFIX_PATH=\"path/to/Qt/lib/cmake\" or -DCMAKE_PREFIX_PATH=/usr/include/{host}/qt{version}/ on Ubuntu)")
-endif ()
 
 find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 
@@ -25,11 +20,15 @@ add_executable(chess
         "mainwindow/mainwindow.cpp"
         "chessboard/board.cpp"
         "chessboard/field.cpp"
+        "chessboard/chessObject.cpp"
         "gamecontrol/game.cpp"
         "gamecontrol/history.cpp"
+        "gamemodes/local.cpp"
         "gamemodes/engine.cpp"
         "gamemodes/server.cpp"
         "gamemodes/client.cpp"
+        "gamemodes/online.cpp"
+        "gamemodes/gameMode.cpp"
         "icons/qtres.qrc")
 # TODO: remove nvwa from final project, reset CMAKE_CXX_STANDARD to 17 (lowered to 14 for nvwa)
 

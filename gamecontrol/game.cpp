@@ -604,10 +604,6 @@ void Game::executeExternal(const QString &move) {
     }
 }
 
-void Game::errorHandler(int exitcode) {
-    emit this->chessError(exitcode);
-}
-
 QString Game::revAlgToLongAlg(QString rev_alg, const QString &color) {
     if (rev_alg.contains("+")) {
         rev_alg.chop(1);

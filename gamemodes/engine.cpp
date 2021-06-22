@@ -10,7 +10,7 @@ Engine::Engine(QWidget *mainwidget, const QString &player_color) {
 }
 
 Engine::~Engine() {
-    delete this->game;
+//    delete this->game;
     if (this->stockfish->state() == QProcess::Running) {
         this->giveCommand("quit");
         this->stockfish->waitForFinished(5000);
@@ -95,8 +95,4 @@ void Engine::engineMove() {
 
 void Engine::giveCommand(const QString &command) {
     this->stockfish->write((command + "\n").toLocal8Bit());
-}
-
-void Engine::errorHandler(int exitcode) {
-    emit this->chessError(exitcode);
 }
