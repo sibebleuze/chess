@@ -9,11 +9,13 @@ Q_OBJECT
 public:
     ~GameMode() override;
 
-    virtual void
-    start(int level) {}; // only implemented in engine, but needs to be called on pointer to GameMode object
-    virtual void engineMove() {}; // only implemented in engine, but needs to be called on pointer to GameMode object
-    virtual void
-    firstServerMove() {}; // only implemented in client, but needs to be called on pointer to GameMode object
+    // two functions below are only implemented in engine, but needs to be called on pointer to GameMode object
+    virtual void start(int level) {};
+
+    virtual void engineMove() {};
+
+    // function below is only implemented in client, but needs to be called on pointer to GameMode object
+    virtual void firstServerMove() {};
 
 protected:
     Game *game = nullptr;
