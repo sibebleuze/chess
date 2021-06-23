@@ -18,10 +18,7 @@ public slots:
     void engineMove() override;
 
 private:
-//    Game *game;
     QProcess *stockfish;
-
-//    QString last_reply = "";
 
     bool getReply(const QString &inReply, int cycles = 300);
 
