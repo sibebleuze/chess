@@ -92,7 +92,7 @@ Field *Board::operator[](const QString &name) { // overload bracket operator, ch
     // if e.g. name = 'd6',
     int row = name.rightRef(1).toInt() - 1; // then row = 5
     int column = Board::column_numbers()[name.left(1)]; // and column = 3
-    // and then this will return (a pointer to) the bottom left field of the board
+    // and then this will return (a pointer to) the field 'd6' of the board
     return (*this)[std::make_pair(row, column)];
 }
 
